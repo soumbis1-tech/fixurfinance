@@ -19,6 +19,7 @@ import { Route as AuthenticatedRecurringRouteImport } from './routes/_authentica
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedImportsRouteImport } from './routes/_authenticated/imports'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCreditCardRouteImport } from './routes/_authenticated/credit-card'
 import { Route as AuthenticatedBankStatementsRouteImport } from './routes/_authenticated/bank-statements'
 import { Route as AuthenticatedExpensesIndexRouteImport } from './routes/_authenticated/expenses/index'
 import { Route as AuthenticatedExpensesNewRouteImport } from './routes/_authenticated/expenses/new'
@@ -72,6 +73,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCreditCardRoute = AuthenticatedCreditCardRouteImport.update({
+  id: '/credit-card',
+  path: '/credit-card',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedBankStatementsRoute =
   AuthenticatedBankStatementsRouteImport.update({
     id: '/bank-statements',
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/bank-statements': typeof AuthenticatedBankStatementsRoute
+  '/credit-card': typeof AuthenticatedCreditCardRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/imports': typeof AuthenticatedImportsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/bank-statements': typeof AuthenticatedBankStatementsRoute
+  '/credit-card': typeof AuthenticatedCreditCardRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/imports': typeof AuthenticatedImportsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/bank-statements': typeof AuthenticatedBankStatementsRoute
+  '/_authenticated/credit-card': typeof AuthenticatedCreditCardRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/imports': typeof AuthenticatedImportsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/bank-statements'
+    | '/credit-card'
     | '/dashboard'
     | '/imports'
     | '/onboarding'
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/bank-statements'
+    | '/credit-card'
     | '/dashboard'
     | '/imports'
     | '/onboarding'
@@ -171,6 +182,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/_authenticated/bank-statements'
+    | '/_authenticated/credit-card'
     | '/_authenticated/dashboard'
     | '/_authenticated/imports'
     | '/_authenticated/onboarding'
@@ -260,6 +272,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/credit-card': {
+      id: '/_authenticated/credit-card'
+      path: '/credit-card'
+      fullPath: '/credit-card'
+      preLoaderRoute: typeof AuthenticatedCreditCardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/bank-statements': {
       id: '/_authenticated/bank-statements'
       path: '/bank-statements'
@@ -286,6 +305,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedBankStatementsRoute: typeof AuthenticatedBankStatementsRoute
+  AuthenticatedCreditCardRoute: typeof AuthenticatedCreditCardRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedImportsRoute: typeof AuthenticatedImportsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
@@ -298,6 +318,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBankStatementsRoute: AuthenticatedBankStatementsRoute,
+  AuthenticatedCreditCardRoute: AuthenticatedCreditCardRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedImportsRoute: AuthenticatedImportsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
