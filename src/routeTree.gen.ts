@@ -13,6 +13,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedTripsRouteImport } from './routes/_authenticated/trips'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedRecurringRouteImport } from './routes/_authenticated/recurring'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
@@ -40,6 +41,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedTripsRoute = AuthenticatedTripsRouteImport.update({
+  id: '/trips',
+  path: '/trips',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/recurring': typeof AuthenticatedRecurringRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/trips': typeof AuthenticatedTripsRoute
   '/expenses/new': typeof AuthenticatedExpensesNewRoute
   '/expenses/': typeof AuthenticatedExpensesIndexRoute
 }
@@ -108,6 +115,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/recurring': typeof AuthenticatedRecurringRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/trips': typeof AuthenticatedTripsRoute
   '/expenses/new': typeof AuthenticatedExpensesNewRoute
   '/expenses': typeof AuthenticatedExpensesIndexRoute
 }
@@ -123,6 +131,7 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/recurring': typeof AuthenticatedRecurringRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/trips': typeof AuthenticatedTripsRoute
   '/_authenticated/expenses/new': typeof AuthenticatedExpensesNewRoute
   '/_authenticated/expenses/': typeof AuthenticatedExpensesIndexRoute
 }
@@ -138,6 +147,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/recurring'
     | '/settings'
+    | '/trips'
     | '/expenses/new'
     | '/expenses/'
   fileRoutesByTo: FileRoutesByTo
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/recurring'
     | '/settings'
+    | '/trips'
     | '/expenses/new'
     | '/expenses'
   id:
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/_authenticated/recurring'
     | '/_authenticated/settings'
+    | '/_authenticated/trips'
     | '/_authenticated/expenses/new'
     | '/_authenticated/expenses/'
   fileRoutesById: FileRoutesById
@@ -205,6 +217,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/trips': {
+      id: '/_authenticated/trips'
+      path: '/trips'
+      fullPath: '/trips'
+      preLoaderRoute: typeof AuthenticatedTripsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
@@ -272,6 +291,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedRecurringRoute: typeof AuthenticatedRecurringRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedTripsRoute: typeof AuthenticatedTripsRoute
   AuthenticatedExpensesNewRoute: typeof AuthenticatedExpensesNewRoute
   AuthenticatedExpensesIndexRoute: typeof AuthenticatedExpensesIndexRoute
 }
@@ -283,6 +303,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedRecurringRoute: AuthenticatedRecurringRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedTripsRoute: AuthenticatedTripsRoute,
   AuthenticatedExpensesNewRoute: AuthenticatedExpensesNewRoute,
   AuthenticatedExpensesIndexRoute: AuthenticatedExpensesIndexRoute,
 }
