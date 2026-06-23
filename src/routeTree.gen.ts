@@ -17,6 +17,7 @@ import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedImportsRouteImport } from './routes/_authenticated/imports'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedBankStatementsRouteImport } from './routes/_authenticated/bank-statements'
 import { Route as AuthenticatedExpensesIndexRouteImport } from './routes/_authenticated/expenses/index'
 import { Route as AuthenticatedExpensesNewRouteImport } from './routes/_authenticated/expenses/new'
 
@@ -59,6 +60,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedBankStatementsRoute =
+  AuthenticatedBankStatementsRouteImport.update({
+    id: '/bank-statements',
+    path: '/bank-statements',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedExpensesIndexRoute =
   AuthenticatedExpensesIndexRouteImport.update({
     id: '/expenses/',
@@ -76,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/bank-statements': typeof AuthenticatedBankStatementsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/imports': typeof AuthenticatedImportsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -87,6 +95,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/bank-statements': typeof AuthenticatedBankStatementsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/imports': typeof AuthenticatedImportsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -100,6 +109,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/bank-statements': typeof AuthenticatedBankStatementsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/imports': typeof AuthenticatedImportsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
@@ -113,6 +123,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/bank-statements'
     | '/dashboard'
     | '/imports'
     | '/onboarding'
@@ -124,6 +135,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/bank-statements'
     | '/dashboard'
     | '/imports'
     | '/onboarding'
@@ -136,6 +148,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/reset-password'
+    | '/_authenticated/bank-statements'
     | '/_authenticated/dashboard'
     | '/_authenticated/imports'
     | '/_authenticated/onboarding'
@@ -209,6 +222,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/bank-statements': {
+      id: '/_authenticated/bank-statements'
+      path: '/bank-statements'
+      fullPath: '/bank-statements'
+      preLoaderRoute: typeof AuthenticatedBankStatementsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/expenses/': {
       id: '/_authenticated/expenses/'
       path: '/expenses'
@@ -227,6 +247,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedBankStatementsRoute: typeof AuthenticatedBankStatementsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedImportsRoute: typeof AuthenticatedImportsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
@@ -236,6 +257,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedBankStatementsRoute: AuthenticatedBankStatementsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedImportsRoute: AuthenticatedImportsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
