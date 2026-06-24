@@ -30,7 +30,7 @@ const schema = z.object({
   category_id: z.string().uuid().nullable().optional(),
   payment_account_id: z.string().uuid().nullable().optional(),
   trip_id: z.string().uuid().nullable().optional(),
-  comments: z.string().max(1000).optional(),
+  comments: z.string().max(1000).nullable().optional(),
   reimbursable: z.boolean(),
 });
 

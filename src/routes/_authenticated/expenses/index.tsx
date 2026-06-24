@@ -39,18 +39,20 @@ export const Route = createFileRoute("/_authenticated/expenses/")({
   component: ExpensesPage,
 });
 
+type ExpenseType = "expense" | "investment" | "reimbursement" | "income" | "transfer";
+type ReimbStatus = "not_applicable" | "pending" | "reimbursed";
 type Row = {
   id: string;
   date: string;
   description: string;
   amount: number;
-  type: string;
+  type: ExpenseType;
   paid_by: string | null;
   category_id: string | null;
   payment_account_id: string | null;
   trip_id: string | null;
   reimbursable: boolean;
-  reimbursement_status: string;
+  reimbursement_status: ReimbStatus;
   source: string;
   comments: string | null;
 };
