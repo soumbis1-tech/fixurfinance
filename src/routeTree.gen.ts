@@ -25,6 +25,7 @@ import { Route as AuthenticatedBudgetsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedBankStatementsRouteImport } from './routes/_authenticated/bank-statements'
 import { Route as AuthenticatedExpensesIndexRouteImport } from './routes/_authenticated/expenses/index'
 import { Route as AuthenticatedExpensesNewRouteImport } from './routes/_authenticated/expenses/new'
+import { Route as ApiPublicCronWeeklyReportsRouteImport } from './routes/api/public/cron.weekly-reports'
 import { Route as AuthenticatedExpensesIdEditRouteImport } from './routes/_authenticated/expenses/$id.edit'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -109,6 +110,12 @@ const AuthenticatedExpensesNewRoute =
     path: '/expenses/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicCronWeeklyReportsRoute =
+  ApiPublicCronWeeklyReportsRouteImport.update({
+    id: '/api/public/cron/weekly-reports',
+    path: '/api/public/cron/weekly-reports',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedExpensesIdEditRoute =
   AuthenticatedExpensesIdEditRouteImport.update({
     id: '/expenses/$id/edit',
@@ -133,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/expenses/new': typeof AuthenticatedExpensesNewRoute
   '/expenses/': typeof AuthenticatedExpensesIndexRoute
   '/expenses/$id/edit': typeof AuthenticatedExpensesIdEditRoute
+  '/api/public/cron/weekly-reports': typeof ApiPublicCronWeeklyReportsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -151,6 +159,7 @@ export interface FileRoutesByTo {
   '/expenses/new': typeof AuthenticatedExpensesNewRoute
   '/expenses': typeof AuthenticatedExpensesIndexRoute
   '/expenses/$id/edit': typeof AuthenticatedExpensesIdEditRoute
+  '/api/public/cron/weekly-reports': typeof ApiPublicCronWeeklyReportsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -171,6 +180,7 @@ export interface FileRoutesById {
   '/_authenticated/expenses/new': typeof AuthenticatedExpensesNewRoute
   '/_authenticated/expenses/': typeof AuthenticatedExpensesIndexRoute
   '/_authenticated/expenses/$id/edit': typeof AuthenticatedExpensesIdEditRoute
+  '/api/public/cron/weekly-reports': typeof ApiPublicCronWeeklyReportsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -191,6 +201,7 @@ export interface FileRouteTypes {
     | '/expenses/new'
     | '/expenses/'
     | '/expenses/$id/edit'
+    | '/api/public/cron/weekly-reports'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -209,6 +220,7 @@ export interface FileRouteTypes {
     | '/expenses/new'
     | '/expenses'
     | '/expenses/$id/edit'
+    | '/api/public/cron/weekly-reports'
   id:
     | '__root__'
     | '/'
@@ -228,6 +240,7 @@ export interface FileRouteTypes {
     | '/_authenticated/expenses/new'
     | '/_authenticated/expenses/'
     | '/_authenticated/expenses/$id/edit'
+    | '/api/public/cron/weekly-reports'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -235,6 +248,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiPublicCronWeeklyReportsRoute: typeof ApiPublicCronWeeklyReportsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -351,6 +365,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedExpensesNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/cron/weekly-reports': {
+      id: '/api/public/cron/weekly-reports'
+      path: '/api/public/cron/weekly-reports'
+      fullPath: '/api/public/cron/weekly-reports'
+      preLoaderRoute: typeof ApiPublicCronWeeklyReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/expenses/$id/edit': {
       id: '/_authenticated/expenses/$id/edit'
       path: '/expenses/$id/edit'
@@ -401,6 +422,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiPublicCronWeeklyReportsRoute: ApiPublicCronWeeklyReportsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
