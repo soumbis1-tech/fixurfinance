@@ -521,6 +521,59 @@ export type Database = {
         }
         Relationships: []
       }
+      family_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          family_id: string
+          id: string
+          invited_by: string
+          role: Database["public"]["Enums"]["family_role"]
+          status: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          family_id: string
+          id?: string
+          invited_by: string
+          role?: Database["public"]["Enums"]["family_role"]
+          status?: string
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          family_id?: string
+          id?: string
+          invited_by?: string
+          role?: Database["public"]["Enums"]["family_role"]
+          status?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_invitations_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       family_members: {
         Row: {
           active: boolean
@@ -1129,6 +1182,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_family_invitation: { Args: { _token: string }; Returns: string }
       category_summary: {
         Args: { _end: string; _family_id: string; _start: string }
         Returns: {
@@ -1153,6 +1207,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      invitation_preview: {
+        Args: { _token: string }
+        Returns: {
+          email: string
+          expires_at: string
+          family_name: string
+          role: Database["public"]["Enums"]["family_role"]
+          status: string
+        }[]
+      }
       is_family_member: {
         Args: { _family_id: string; _user_id: string }
         Returns: boolean
@@ -1175,6 +1239,7 @@ export type Database = {
         }[]
       }
       seed_family_defaults: { Args: { _family_id: string }; Returns: undefined }
+      seed_family_sample_data: { Args: { _family_id: string }; Returns: number }
     }
     Enums: {
       credit_card_status: "unpaid" | "paid" | "reimbursed" | "disputed"
