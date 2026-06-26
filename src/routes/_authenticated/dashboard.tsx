@@ -18,6 +18,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { Wallet, TrendingUp, Calendar, Receipt, PiggyBank, RefreshCw, Loader2 } from "lucide-react";
+import { SetupChecklist } from "@/components/app/SetupChecklist";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -206,14 +207,16 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">
+      <div className="flex items-center justify-between gap-3 min-w-0">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-semibold truncate">Dashboard</h1>
+          <p className="text-sm text-muted-foreground truncate">
             {formatDate(today)} · {activeFamily?.name}
           </p>
         </div>
       </div>
+
+      <SetupChecklist familyId={familyId ?? null} />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard

@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Loader2, UserPlus, Trash2, Mail, Send, AlertTriangle } from "lucide-react";
 import { sendTestWeeklyReport } from "@/lib/weekly-report.functions";
 import { formatDate } from "@/lib/format";
+import { InvitationsSection } from "@/components/app/InvitationsSection";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings" }] }),
@@ -122,6 +123,9 @@ function SettingsPage() {
         </ul>
       </section>
 
+      <InvitationsSection familyId={activeFamily?.id ?? null} isAdmin={isAdmin} />
+
+      <div id="weekly" />
       <WeeklyReportSection familyId={activeFamily?.id ?? null} isAdmin={isAdmin} />
     </div>
   );

@@ -9,11 +9,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 
+const PENDING_KEY = "fet-pending-invite-token";
+
+function postAuthDestination(): { to: string; search?: Record<string, string> } {
+  if (typeof window === "undefined") return { to: "/dashboard" };
+  const token = localStorage.getItem(PENDING_KEY);
+  if (token) return { to: "/accept-invite", search: { token } };
+  return { to: "/dashboard" };
+}
+
 export const Route = createFileRoute("/auth")({
   ssr: false,
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
-    if (data.session) throw redirect({ to: "/dashboard" });
+    if (data.session) {
+      const dest = postAuthDestination();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      throw redirect({ to: dest.to, search: dest.search as any });
+    }
   },
   head: () => ({
     meta: [
@@ -37,7 +50,9 @@ function AuthPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) return toast.error(error.message);
-    navigate({ to: "/dashboard" });
+    const dest = postAuthDestination();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    navigate({ to: dest.to, search: dest.search as any });
   }
 
   async function handleSignUp(e: React.FormEvent) {
@@ -68,7 +83,9 @@ function AuthPage() {
       return;
     }
     if (result.redirected) return;
-    navigate({ to: "/dashboard" });
+    const dest = postAuthDestination();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    navigate({ to: dest.to, search: dest.search as any });
   }
 
   async function handleReset() {
