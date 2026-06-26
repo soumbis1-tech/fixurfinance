@@ -84,6 +84,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Household and family expense tracking with imports, recurring bills, trips, budgets, and an AI assistant." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Family Expense Tracker" },
+      { name: "twitter:description", content: "Household and family expense tracking with imports, recurring bills, trips, budgets, and an AI assistant." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/bd096122-0fd6-46bf-a496-d10e41a7e585" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/bd096122-0fd6-46bf-a496-d10e41a7e585" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
