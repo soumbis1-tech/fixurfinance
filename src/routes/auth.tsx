@@ -50,7 +50,9 @@ function AuthPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) return toast.error(error.message);
-    navigate({ to: "/dashboard" });
+    const dest = postAuthDestination();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    navigate({ to: dest.to, search: dest.search as any });
   }
 
   async function handleSignUp(e: React.FormEvent) {
@@ -81,7 +83,9 @@ function AuthPage() {
       return;
     }
     if (result.redirected) return;
-    navigate({ to: "/dashboard" });
+    const dest = postAuthDestination();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    navigate({ to: dest.to, search: dest.search as any });
   }
 
   async function handleReset() {
