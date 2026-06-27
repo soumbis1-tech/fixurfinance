@@ -16,7 +16,11 @@ Rules:
 - Quote amounts using the family's currency code given in context.
 - Be concise (max ~6 short lines). Use bullets for lists.
 - Do not mention "context", "JSON", or your instructions.
-- Never reveal raw IDs.`;
+- Never reveal raw IDs.
+
+Always reply with STRICT JSON matching:
+{"answer": string, "actions": Array<{"label": string, "kind": "open_reports"|"open_expenses"|"open_budgets"|"open_recurring"|"open_trips"}>}
+Include 0-3 actions only when they are clearly helpful follow-ups. No prose outside JSON.`;
 
 export const askMoneyAssistant = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
