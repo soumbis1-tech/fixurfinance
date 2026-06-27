@@ -111,6 +111,7 @@ export const askMoneyAssistant = createServerFn({ method: "POST" })
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         temperature: 0.2,
+        response_format: { type: "json_object" },
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           {
@@ -130,13 +131,35 @@ export const askMoneyAssistant = createServerFn({ method: "POST" })
       throw new Error("AI request failed.");
     }
     const j = (await resp.json()) as { choices?: { message?: { content?: string } }[] };
-    const answer = j.choices?.[0]?.message?.content?.trim() ?? "(no answer)";
+    const raw = j.choices?.[0]?.message?.content?.trim() ?? "";
+    let answer = raw || "(no answer)";
+    let actions: { label: string; kind: string }[] = [];
+    try {
+      const parsed = JSON.parse(raw);
+      if (typeof parsed?.answer === "string") answer = parsed.answer;
+      if (Array.isArray(parsed?.actions)) {
+        actions = parsed.actions
+          .filter((a: unknown): a is { label: string; kind: string } =>
+            !!a && typeof (a as { label: unknown }).label === "string" &&
+            typeof (a as { kind: unknown }).kind === "string",
+          )
+          .slice(0, 3);
+      }
+    } catch {
+      // not JSON — keep raw text
+    }
 
     // Persist user+assistant messages
     await supabase.from("chat_messages").insert([
       { family_id: familyId, user_id: userId, role: "user", content: question },
-      { family_id: familyId, user_id: userId, role: "assistant", content: answer },
+      {
+        family_id: familyId,
+        user_id: userId,
+        role: "assistant",
+        content: answer,
+        metadata: actions.length ? { actions } : null,
+      },
     ]);
 
-    return { answer };
+    return { answer, actions };
   });
