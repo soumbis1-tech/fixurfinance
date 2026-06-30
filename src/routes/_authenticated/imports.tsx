@@ -431,9 +431,13 @@ function ImportsPage() {
               onChange={(v) => setMapping({ ...mapping, category: v })} />
             <MapSelect label="Comments" value={mapping.comments} headers={headers}
               onChange={(v) => setMapping({ ...mapping, comments: v })} />
+            <MapSelect label="Reimbursable" value={mapping.reimbursable} headers={headers}
+              onChange={(v) => setMapping({ ...mapping, reimbursable: v })} />
+            <MapSelect label="Trip" value={mapping.trip} headers={headers}
+              onChange={(v) => setMapping({ ...mapping, trip: v })} />
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
               <Label className="text-xs">Default category (fallback)</Label>
               <Select value={defaultCategoryId} onChange={setDefaultCategoryId}
@@ -443,6 +447,16 @@ function ImportsPage() {
               <Label className="text-xs">Default paid-by (fallback)</Label>
               <Select value={defaultPaidById} onChange={setDefaultPaidById}
                 options={[{ value: "", label: "— none —" }, ...(members.data ?? []).map((m) => ({ value: m.id, label: m.display_name }))]} />
+            </div>
+            <div>
+              <Label className="text-xs">Default trip (fallback)</Label>
+              <Select value={defaultTripId} onChange={setDefaultTripId}
+                options={[{ value: "", label: "— none —" }, ...(trips.data ?? []).map((t) => ({ value: t.id, label: t.name }))]} />
+            </div>
+            <div className="flex items-end gap-2 pb-1">
+              <Checkbox id="def-reimb" checked={defaultReimbursable}
+                onCheckedChange={(v) => setDefaultReimbursable(!!v)} />
+              <Label htmlFor="def-reimb" className="text-xs cursor-pointer">Mark all as reimbursable by default</Label>
             </div>
           </div>
 
