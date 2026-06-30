@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveFamily } from "@/hooks/use-families";
 import { useAuth } from "@/hooks/use-auth";
-import { useCategories, useMembers } from "@/hooks/use-family-lookups";
+import { useCategories, useMembers, useTrips } from "@/hooks/use-family-lookups";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,6 +45,8 @@ type Mapping = {
   paid_by: string;
   category: string;
   comments: string;
+  reimbursable: string;
+  trip: string;
 };
 const EMPTY_MAPPING: Mapping = {
   date: "",
@@ -53,16 +55,27 @@ const EMPTY_MAPPING: Mapping = {
   paid_by: "",
   category: "",
   comments: "",
+  reimbursable: "",
+  trip: "",
 };
 
 type StagedRow = ParsedRow & {
   selected: boolean;
   category_id: string | null;
   paid_by_id: string | null;
+  trip_id: string | null;
+  reimbursable: boolean;
   hash: string;
   duplicate: boolean;
   error?: string | null;
 };
+
+function parseBoolish(v: unknown): boolean {
+  if (v == null) return false;
+  if (typeof v === "boolean") return v;
+  const s = String(v).trim().toLowerCase();
+  return ["y", "yes", "true", "1", "reimbursable", "reimburse", "r"].includes(s);
+}
 
 function ImportsPage() {
   const { activeFamily } = useActiveFamily();
@@ -73,6 +86,7 @@ function ImportsPage() {
 
   const cats = useCategories(familyId);
   const members = useMembers(familyId);
+  const trips = useTrips(familyId);
 
   const [fileName, setFileName] = useState("");
   const [sheetNames, setSheetNames] = useState<string[]>([]);
@@ -83,6 +97,8 @@ function ImportsPage() {
   const [mapping, setMapping] = useState<Mapping>(EMPTY_MAPPING);
   const [defaultCategoryId, setDefaultCategoryId] = useState<string>("");
   const [defaultPaidById, setDefaultPaidById] = useState<string>("");
+  const [defaultTripId, setDefaultTripId] = useState<string>("");
+  const [defaultReimbursable, setDefaultReimbursable] = useState<boolean>(false);
   const [pastedText, setPastedText] = useState("");
   const [source, setSource] = useState<"excel_import" | "text_import">("excel_import");
   const [staged, setStaged] = useState<StagedRow[]>([]);
