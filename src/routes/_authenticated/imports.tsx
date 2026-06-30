@@ -497,6 +497,8 @@ function ImportsPage() {
                   <th className="px-3 py-2 font-medium text-right">Amount</th>
                   <th className="px-3 py-2 font-medium">Category</th>
                   <th className="px-3 py-2 font-medium">Paid by</th>
+                  <th className="px-3 py-2 font-medium">Trip</th>
+                  <th className="px-3 py-2 font-medium text-center">Reimb.</th>
                   <th className="px-3 py-2 font-medium">Status</th>
                 </tr>
               </thead>
@@ -531,6 +533,24 @@ function ImportsPage() {
                           setStaged((s) => s.map((x, j) => (j === i ? { ...x, paid_by_id: v || null } : x)))
                         }
                         options={[{ value: "", label: "—" }, ...(members.data ?? []).map((m) => ({ value: m.id, label: m.display_name }))]}
+                      />
+                    </td>
+                    <td className="px-3 py-1.5">
+                      <Select
+                        value={r.trip_id ?? ""}
+                        onChange={(v) =>
+                          setStaged((s) => s.map((x, j) => (j === i ? { ...x, trip_id: v || null } : x)))
+                        }
+                        options={[{ value: "", label: "—" }, ...(trips.data ?? []).map((t) => ({ value: t.id, label: t.name }))]}
+                      />
+                    </td>
+                    <td className="px-3 py-1.5 text-center">
+                      <Checkbox
+                        checked={r.reimbursable}
+                        disabled={!!r.error}
+                        onCheckedChange={(v) =>
+                          setStaged((s) => s.map((x, j) => (j === i ? { ...x, reimbursable: !!v } : x)))
+                        }
                       />
                     </td>
                     <td className="px-3 py-1.5 text-xs">
