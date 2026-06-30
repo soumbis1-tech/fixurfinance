@@ -210,6 +210,8 @@ function ImportsPage() {
             selected: false,
             category_id: null,
             paid_by_id: null,
+            trip_id: null,
+            reimbursable: false,
             hash: "",
             duplicate: false,
             error: !date ? "Bad date" : !amount ? "Bad amount" : "Missing description",
@@ -219,6 +221,8 @@ function ImportsPage() {
         const paidByName = mapping.paid_by ? String(r[mapping.paid_by] ?? "").trim() : "";
         const catName = mapping.category ? String(r[mapping.category] ?? "").trim() : "";
         const comments = mapping.comments ? String(r[mapping.comments] ?? "").trim() : "";
+        const tripName = mapping.trip ? String(r[mapping.trip] ?? "").trim() : "";
+        const reimbRaw = mapping.reimbursable ? r[mapping.reimbursable] : undefined;
 
         const paid_by_id =
           (paidByName && memberByName.get(paidByName.toLowerCase())) ||
@@ -229,6 +233,12 @@ function ImportsPage() {
           autoCategoryFor(description, rules) ||
           defaultCategoryId ||
           null;
+        const tripByName = new Map(
+          (trips.data ?? []).map((t) => [t.name.trim().toLowerCase(), t.id]),
+        );
+        const trip_id =
+          (tripName && tripByName.get(tripName.toLowerCase())) || defaultTripId || null;
+        const reimbursable = mapping.reimbursable ? parseBoolish(reimbRaw) : defaultReimbursable;
 
         const hash = await dedupeHash(familyId, date, amount, description);
         parsed.push({
@@ -239,6 +249,8 @@ function ImportsPage() {
           selected: true,
           category_id,
           paid_by_id,
+          trip_id,
+          reimbursable,
           hash,
           duplicate: false,
         });
