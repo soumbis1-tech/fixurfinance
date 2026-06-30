@@ -320,7 +320,7 @@ function ImportsPage() {
         paid_by: r.paid_by_id,
         trip_id: r.trip_id,
         reimbursable: r.reimbursable,
-        reimbursement_status: r.reimbursable ? ("pending" as const) : null,
+        reimbursement_status: r.reimbursable ? ("pending" as const) : ("not_applicable" as const),
         comments: r.comments ?? null,
         type: "expense" as const,
         source,
