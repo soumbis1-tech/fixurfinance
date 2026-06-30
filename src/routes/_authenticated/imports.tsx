@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveFamily } from "@/hooks/use-families";
 import { useAuth } from "@/hooks/use-auth";
-import { useCategories, useMembers } from "@/hooks/use-family-lookups";
+import { useCategories, useMembers, useTrips } from "@/hooks/use-family-lookups";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,6 +45,8 @@ type Mapping = {
   paid_by: string;
   category: string;
   comments: string;
+  reimbursable: string;
+  trip: string;
 };
 const EMPTY_MAPPING: Mapping = {
   date: "",
@@ -53,16 +55,27 @@ const EMPTY_MAPPING: Mapping = {
   paid_by: "",
   category: "",
   comments: "",
+  reimbursable: "",
+  trip: "",
 };
 
 type StagedRow = ParsedRow & {
   selected: boolean;
   category_id: string | null;
   paid_by_id: string | null;
+  trip_id: string | null;
+  reimbursable: boolean;
   hash: string;
   duplicate: boolean;
   error?: string | null;
 };
+
+function parseBoolish(v: unknown): boolean {
+  if (v == null) return false;
+  if (typeof v === "boolean") return v;
+  const s = String(v).trim().toLowerCase();
+  return ["y", "yes", "true", "1", "reimbursable", "reimburse", "r"].includes(s);
+}
 
 function ImportsPage() {
   const { activeFamily } = useActiveFamily();
@@ -73,6 +86,7 @@ function ImportsPage() {
 
   const cats = useCategories(familyId);
   const members = useMembers(familyId);
+  const trips = useTrips(familyId);
 
   const [fileName, setFileName] = useState("");
   const [sheetNames, setSheetNames] = useState<string[]>([]);
@@ -83,6 +97,8 @@ function ImportsPage() {
   const [mapping, setMapping] = useState<Mapping>(EMPTY_MAPPING);
   const [defaultCategoryId, setDefaultCategoryId] = useState<string>("");
   const [defaultPaidById, setDefaultPaidById] = useState<string>("");
+  const [defaultTripId, setDefaultTripId] = useState<string>("");
+  const [defaultReimbursable, setDefaultReimbursable] = useState<boolean>(false);
   const [pastedText, setPastedText] = useState("");
   const [source, setSource] = useState<"excel_import" | "text_import">("excel_import");
   const [staged, setStaged] = useState<StagedRow[]>([]);
@@ -194,6 +210,8 @@ function ImportsPage() {
             selected: false,
             category_id: null,
             paid_by_id: null,
+            trip_id: null,
+            reimbursable: false,
             hash: "",
             duplicate: false,
             error: !date ? "Bad date" : !amount ? "Bad amount" : "Missing description",
@@ -203,6 +221,8 @@ function ImportsPage() {
         const paidByName = mapping.paid_by ? String(r[mapping.paid_by] ?? "").trim() : "";
         const catName = mapping.category ? String(r[mapping.category] ?? "").trim() : "";
         const comments = mapping.comments ? String(r[mapping.comments] ?? "").trim() : "";
+        const tripName = mapping.trip ? String(r[mapping.trip] ?? "").trim() : "";
+        const reimbRaw = mapping.reimbursable ? r[mapping.reimbursable] : undefined;
 
         const paid_by_id =
           (paidByName && memberByName.get(paidByName.toLowerCase())) ||
@@ -213,6 +233,12 @@ function ImportsPage() {
           autoCategoryFor(description, rules) ||
           defaultCategoryId ||
           null;
+        const tripByName = new Map(
+          (trips.data ?? []).map((t) => [t.name.trim().toLowerCase(), t.id]),
+        );
+        const trip_id =
+          (tripName && tripByName.get(tripName.toLowerCase())) || defaultTripId || null;
+        const reimbursable = mapping.reimbursable ? parseBoolish(reimbRaw) : defaultReimbursable;
 
         const hash = await dedupeHash(familyId, date, amount, description);
         parsed.push({
@@ -223,6 +249,8 @@ function ImportsPage() {
           selected: true,
           category_id,
           paid_by_id,
+          trip_id,
+          reimbursable,
           hash,
           duplicate: false,
         });
@@ -290,6 +318,9 @@ function ImportsPage() {
         amount: r.amount,
         category_id: r.category_id,
         paid_by: r.paid_by_id,
+        trip_id: r.trip_id,
+        reimbursable: r.reimbursable,
+        reimbursement_status: r.reimbursable ? ("pending" as const) : ("not_applicable" as const),
         comments: r.comments ?? null,
         type: "expense" as const,
         source,
@@ -400,9 +431,13 @@ function ImportsPage() {
               onChange={(v) => setMapping({ ...mapping, category: v })} />
             <MapSelect label="Comments" value={mapping.comments} headers={headers}
               onChange={(v) => setMapping({ ...mapping, comments: v })} />
+            <MapSelect label="Reimbursable" value={mapping.reimbursable} headers={headers}
+              onChange={(v) => setMapping({ ...mapping, reimbursable: v })} />
+            <MapSelect label="Trip" value={mapping.trip} headers={headers}
+              onChange={(v) => setMapping({ ...mapping, trip: v })} />
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
               <Label className="text-xs">Default category (fallback)</Label>
               <Select value={defaultCategoryId} onChange={setDefaultCategoryId}
@@ -412,6 +447,16 @@ function ImportsPage() {
               <Label className="text-xs">Default paid-by (fallback)</Label>
               <Select value={defaultPaidById} onChange={setDefaultPaidById}
                 options={[{ value: "", label: "— none —" }, ...(members.data ?? []).map((m) => ({ value: m.id, label: m.display_name }))]} />
+            </div>
+            <div>
+              <Label className="text-xs">Default trip (fallback)</Label>
+              <Select value={defaultTripId} onChange={setDefaultTripId}
+                options={[{ value: "", label: "— none —" }, ...(trips.data ?? []).map((t) => ({ value: t.id, label: t.name }))]} />
+            </div>
+            <div className="flex items-end gap-2 pb-1">
+              <Checkbox id="def-reimb" checked={defaultReimbursable}
+                onCheckedChange={(v) => setDefaultReimbursable(!!v)} />
+              <Label htmlFor="def-reimb" className="text-xs cursor-pointer">Mark all as reimbursable by default</Label>
             </div>
           </div>
 
@@ -452,6 +497,8 @@ function ImportsPage() {
                   <th className="px-3 py-2 font-medium text-right">Amount</th>
                   <th className="px-3 py-2 font-medium">Category</th>
                   <th className="px-3 py-2 font-medium">Paid by</th>
+                  <th className="px-3 py-2 font-medium">Trip</th>
+                  <th className="px-3 py-2 font-medium text-center">Reimb.</th>
                   <th className="px-3 py-2 font-medium">Status</th>
                 </tr>
               </thead>
@@ -486,6 +533,24 @@ function ImportsPage() {
                           setStaged((s) => s.map((x, j) => (j === i ? { ...x, paid_by_id: v || null } : x)))
                         }
                         options={[{ value: "", label: "—" }, ...(members.data ?? []).map((m) => ({ value: m.id, label: m.display_name }))]}
+                      />
+                    </td>
+                    <td className="px-3 py-1.5">
+                      <Select
+                        value={r.trip_id ?? ""}
+                        onChange={(v) =>
+                          setStaged((s) => s.map((x, j) => (j === i ? { ...x, trip_id: v || null } : x)))
+                        }
+                        options={[{ value: "", label: "—" }, ...(trips.data ?? []).map((t) => ({ value: t.id, label: t.name }))]}
+                      />
+                    </td>
+                    <td className="px-3 py-1.5 text-center">
+                      <Checkbox
+                        checked={r.reimbursable}
+                        disabled={!!r.error}
+                        onCheckedChange={(v) =>
+                          setStaged((s) => s.map((x, j) => (j === i ? { ...x, reimbursable: !!v } : x)))
+                        }
                       />
                     </td>
                     <td className="px-3 py-1.5 text-xs">
