@@ -32,7 +32,7 @@ export const sendTestWeeklyReport = createServerFn({ method: "POST" })
 
     const result = await sendEmail({
       to: settings.recipients,
-      subject: `[Test] ${report.family.name} weekly report`,
+      subject: sanitizeEmailHeader(`[Test] ${report.family.name} weekly report`),
       html,
     });
 
