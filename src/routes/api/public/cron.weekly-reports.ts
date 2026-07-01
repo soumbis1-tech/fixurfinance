@@ -15,7 +15,7 @@ export const Route = createFileRoute("/api/public/cron/weekly-reports")({
         }
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { buildWeeklyReport, renderWeeklyReportHtml, sendEmail } = await import(
+        const { buildWeeklyReport, renderWeeklyReportHtml, sendEmail, sanitizeEmailHeader } = await import(
           "@/lib/weekly-report.server"
         );
 
