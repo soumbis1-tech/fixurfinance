@@ -15,7 +15,7 @@ export const Route = createFileRoute("/api/public/cron/weekly-reports")({
         }
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { buildWeeklyReport, renderWeeklyReportHtml, sendEmail } = await import(
+        const { buildWeeklyReport, renderWeeklyReportHtml, sendEmail, sanitizeEmailHeader } = await import(
           "@/lib/weekly-report.server"
         );
 
@@ -37,7 +37,7 @@ export const Route = createFileRoute("/api/public/cron/weekly-reports")({
             const html = renderWeeklyReportHtml(report);
             const r = await sendEmail({
               to: s.recipients,
-              subject: `${report.family.name} weekly report — ${startIso} → ${endIso}`,
+              subject: sanitizeEmailHeader(`${report.family.name} weekly report — ${startIso} → ${endIso}`),
               html,
             });
             await supabaseAdmin.from("weekly_report_runs").insert({
