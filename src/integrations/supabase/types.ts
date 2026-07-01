@@ -1256,7 +1256,12 @@ export type Database = {
         | "income"
         | "transfer"
       family_role: "owner" | "admin" | "member" | "viewer"
-      recurring_frequency: "monthly" | "quarterly" | "yearly" | "weekly"
+      recurring_frequency:
+        | "monthly"
+        | "quarterly"
+        | "yearly"
+        | "weekly"
+        | "daily"
       recurring_status: "due" | "paid" | "skipped" | "overdue"
       reimbursement_status: "not_applicable" | "pending" | "reimbursed"
     }
@@ -1402,7 +1407,13 @@ export const Constants = {
         "transfer",
       ],
       family_role: ["owner", "admin", "member", "viewer"],
-      recurring_frequency: ["monthly", "quarterly", "yearly", "weekly"],
+      recurring_frequency: [
+        "monthly",
+        "quarterly",
+        "yearly",
+        "weekly",
+        "daily",
+      ],
       recurring_status: ["due", "paid", "skipped", "overdue"],
       reimbursement_status: ["not_applicable", "pending", "reimbursed"],
     },
