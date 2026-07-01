@@ -9,7 +9,7 @@ export const sendTestWeeklyReport = createServerFn({ method: "POST" })
   .inputValidator((d) => familyOnly.parse(d))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const { buildWeeklyReport, renderWeeklyReportHtml, sendEmail } = await import("./weekly-report.server");
+    const { buildWeeklyReport, renderWeeklyReportHtml, sendEmail, sanitizeEmailHeader } = await import("./weekly-report.server");
 
     // Confirm membership via RLS-scoped read
     const { data: settings } = await supabase
