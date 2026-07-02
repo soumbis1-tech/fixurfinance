@@ -179,16 +179,24 @@ function Dashboard() {
     enabled: !!familyId,
     queryKey: ["recurring_unpaid", familyId, today.getFullYear(), today.getMonth() + 1],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("recurring_payment_status")
-        .select("status")
-        .eq("family_id", familyId!)
-        .eq("period_year", today.getFullYear())
-        .eq("period_month", today.getMonth() + 1);
-      if (error) throw error;
-      const paid = (data ?? []).filter((r) => r.status === "paid").length;
-      const due = (data ?? []).filter((r) => r.status !== "paid").length;
-      return { paid, due };
+      const [totalRes, statusRes] = await Promise.all([
+        supabase
+          .from("recurring_expenses")
+          .select("id", { count: "exact", head: true })
+          .eq("family_id", familyId!)
+          .eq("active", true),
+        supabase
+          .from("recurring_payment_status")
+          .select("status")
+          .eq("family_id", familyId!)
+          .eq("period_year", today.getFullYear())
+          .eq("period_month", today.getMonth() + 1),
+      ]);
+      if (totalRes.error) throw totalRes.error;
+      if (statusRes.error) throw statusRes.error;
+      const total = totalRes.count ?? 0;
+      const paid = (statusRes.data ?? []).filter((r) => r.status === "paid").length;
+      return { paid, due: total };
     },
   });
 
