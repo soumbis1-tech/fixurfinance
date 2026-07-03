@@ -40,7 +40,36 @@ type RecurringRow = {
   category_id: string | null;
   paid_by: string | null;
   notes: string | null;
+  created_at: string;
 };
+
+type Occurrence = {
+  row: RecurringRow;
+  periodIndex: number;
+  label: string | null;
+};
+
+function occurrencesFor(row: RecurringRow, year: number, month: number): Occurrence[] {
+  const anchor = new Date(row.created_at);
+  const anchorYear = anchor.getFullYear();
+  const anchorMonth = anchor.getMonth() + 1;
+  const anchorYM = anchorYear * 12 + (anchorMonth - 1);
+  const viewYM = year * 12 + (month - 1);
+  if (viewYM < anchorYM) return [];
+  switch (row.frequency) {
+    case "daily":
+    case "monthly":
+      return [{ row, periodIndex: 1, label: null }];
+    case "weekly":
+      return [1, 2, 3, 4].map((i) => ({ row, periodIndex: i, label: `Payment ${i}` }));
+    case "quarterly":
+      return (viewYM - anchorYM) % 3 === 0 ? [{ row, periodIndex: 1, label: null }] : [];
+    case "yearly":
+      return month === anchorMonth && year >= anchorYear
+        ? [{ row, periodIndex: 1, label: null }]
+        : [];
+  }
+}
 
 function RecurringPage() {
   const { activeFamily } = useActiveFamily();
@@ -58,7 +87,7 @@ function RecurringPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("recurring_expenses")
-        .select("id, item, amount, type, frequency, due_day, active, category_id, paid_by, notes")
+        .select("id, item, amount, type, frequency, due_day, active, category_id, paid_by, notes, created_at")
         .eq("family_id", familyId!)
         .eq("active", true)
         .order("item");
@@ -73,29 +102,39 @@ function RecurringPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("recurring_payment_status")
-        .select("recurring_id, status, paid_on")
+        .select("recurring_id, period_index, status, paid_on")
         .eq("family_id", familyId!)
         .eq("period_year", year)
         .eq("period_month", month);
       if (error) throw error;
       const map: Record<string, { status: string; paid_on: string | null }> = {};
-      for (const r of data ?? []) map[r.recurring_id] = { status: r.status, paid_on: r.paid_on };
+      for (const r of data ?? [])
+        map[`${r.recurring_id}:${r.period_index ?? 1}`] = { status: r.status, paid_on: r.paid_on };
       return map;
     },
   });
 
   const setStatus = useMutation({
-    mutationFn: async ({ recurringId, status }: { recurringId: string; status: "paid" | "due" }) => {
+    mutationFn: async ({
+      recurringId,
+      periodIndex,
+      status,
+    }: {
+      recurringId: string;
+      periodIndex: number;
+      status: "paid" | "due";
+    }) => {
       const { error } = await supabase.from("recurring_payment_status").upsert(
         {
           family_id: familyId!,
           recurring_id: recurringId,
           period_year: year,
           period_month: month,
+          period_index: periodIndex,
           status,
           paid_on: status === "paid" ? new Date().toISOString().slice(0, 10) : null,
         },
-        { onConflict: "recurring_id,period_year,period_month" },
+        { onConflict: "recurring_id,period_year,period_month,period_index" },
       );
       if (error) throw error;
     },
@@ -134,10 +173,11 @@ function RecurringPage() {
 
   const memberName = (id: string | null) => members.data?.find((m) => m.id === id)?.display_name ?? "—";
 
-  const totalDue = (items.data ?? []).reduce((s, r) => s + Number(r.amount), 0);
-  const paidTotal = (items.data ?? [])
-    .filter((r) => statuses.data?.[r.id]?.status === "paid")
-    .reduce((s, r) => s + Number(r.amount), 0);
+  const occurrences: Occurrence[] = (items.data ?? []).flatMap((r) => occurrencesFor(r, year, month));
+  const totalDue = occurrences.reduce((s, o) => s + Number(o.row.amount), 0);
+  const paidTotal = occurrences
+    .filter((o) => statuses.data?.[`${o.row.id}:${o.periodIndex}`]?.status === "paid")
+    .reduce((s, o) => s + Number(o.row.amount), 0);
 
   const [editing, setEditing] = useState<RecurringRow | null>(null);
 
@@ -169,9 +209,9 @@ function RecurringPage() {
           <div className="p-8 flex items-center text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin mr-2" /> Loading…
           </div>
-        ) : (items.data?.length ?? 0) === 0 ? (
+        ) : occurrences.length === 0 ? (
           <div className="p-8 text-sm text-muted-foreground text-center">
-            No recurring items yet. Click &ldquo;Add recurring&rdquo; to create one.
+            No recurring items due this month.
           </div>
         ) : (
           <table className="w-full text-sm">
@@ -187,15 +227,21 @@ function RecurringPage() {
               </tr>
             </thead>
             <tbody>
-              {items.data?.map((r) => {
-                const st = statuses.data?.[r.id]?.status;
+              {occurrences.map((o) => {
+                const r = o.row;
+                const key = `${r.id}:${o.periodIndex}`;
+                const st = statuses.data?.[key]?.status;
                 const isPaid = st === "paid";
                 return (
-                  <tr key={r.id} className="border-t border-border">
+                  <tr key={key} className="border-t border-border">
                     <td className="px-4 py-2">
                       <button
                         onClick={() =>
-                          setStatus.mutate({ recurringId: r.id, status: isPaid ? "due" : "paid" })
+                          setStatus.mutate({
+                            recurringId: r.id,
+                            periodIndex: o.periodIndex,
+                            status: isPaid ? "due" : "paid",
+                          })
                         }
                         className={`inline-flex h-7 w-7 items-center justify-center rounded-full border ${
                           isPaid
@@ -207,7 +253,12 @@ function RecurringPage() {
                         {isPaid ? <Check className="h-4 w-4" /> : <Circle className="h-3 w-3" />}
                       </button>
                     </td>
-                    <td className="px-4 py-2">{r.item}</td>
+                    <td className="px-4 py-2">
+                      {r.item}
+                      {o.label && (
+                        <span className="ml-2 text-xs text-muted-foreground">({o.label})</span>
+                      )}
+                    </td>
                     <td className="px-4 py-2 text-right tabular-nums">
                       {formatMoney(r.amount, currency)}
                     </td>
