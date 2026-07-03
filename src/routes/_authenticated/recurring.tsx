@@ -227,15 +227,21 @@ function RecurringPage() {
               </tr>
             </thead>
             <tbody>
-              {items.data?.map((r) => {
-                const st = statuses.data?.[r.id]?.status;
+              {occurrences.map((o) => {
+                const r = o.row;
+                const key = `${r.id}:${o.periodIndex}`;
+                const st = statuses.data?.[key]?.status;
                 const isPaid = st === "paid";
                 return (
-                  <tr key={r.id} className="border-t border-border">
+                  <tr key={key} className="border-t border-border">
                     <td className="px-4 py-2">
                       <button
                         onClick={() =>
-                          setStatus.mutate({ recurringId: r.id, status: isPaid ? "due" : "paid" })
+                          setStatus.mutate({
+                            recurringId: r.id,
+                            periodIndex: o.periodIndex,
+                            status: isPaid ? "due" : "paid",
+                          })
                         }
                         className={`inline-flex h-7 w-7 items-center justify-center rounded-full border ${
                           isPaid
@@ -247,7 +253,12 @@ function RecurringPage() {
                         {isPaid ? <Check className="h-4 w-4" /> : <Circle className="h-3 w-3" />}
                       </button>
                     </td>
-                    <td className="px-4 py-2">{r.item}</td>
+                    <td className="px-4 py-2">
+                      {r.item}
+                      {o.label && (
+                        <span className="ml-2 text-xs text-muted-foreground">({o.label})</span>
+                      )}
+                    </td>
                     <td className="px-4 py-2 text-right tabular-nums">
                       {formatMoney(r.amount, currency)}
                     </td>
