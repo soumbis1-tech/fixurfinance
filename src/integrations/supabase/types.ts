@@ -950,6 +950,7 @@ export type Database = {
           id: string
           notes: string | null
           paid_on: string | null
+          period_index: number
           period_month: number
           period_year: number
           recurring_id: string
@@ -963,6 +964,7 @@ export type Database = {
           id?: string
           notes?: string | null
           paid_on?: string | null
+          period_index?: number
           period_month: number
           period_year: number
           recurring_id: string
@@ -976,6 +978,7 @@ export type Database = {
           id?: string
           notes?: string | null
           paid_on?: string | null
+          period_index?: number
           period_month?: number
           period_year?: number
           recurring_id?: string
