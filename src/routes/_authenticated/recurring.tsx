@@ -40,7 +40,36 @@ type RecurringRow = {
   category_id: string | null;
   paid_by: string | null;
   notes: string | null;
+  created_at: string;
 };
+
+type Occurrence = {
+  row: RecurringRow;
+  periodIndex: number;
+  label: string | null;
+};
+
+function occurrencesFor(row: RecurringRow, year: number, month: number): Occurrence[] {
+  const anchor = new Date(row.created_at);
+  const anchorYear = anchor.getFullYear();
+  const anchorMonth = anchor.getMonth() + 1;
+  const anchorYM = anchorYear * 12 + (anchorMonth - 1);
+  const viewYM = year * 12 + (month - 1);
+  if (viewYM < anchorYM) return [];
+  switch (row.frequency) {
+    case "daily":
+    case "monthly":
+      return [{ row, periodIndex: 1, label: null }];
+    case "weekly":
+      return [1, 2, 3, 4].map((i) => ({ row, periodIndex: i, label: `Payment ${i}` }));
+    case "quarterly":
+      return (viewYM - anchorYM) % 3 === 0 ? [{ row, periodIndex: 1, label: null }] : [];
+    case "yearly":
+      return month === anchorMonth && year >= anchorYear
+        ? [{ row, periodIndex: 1, label: null }]
+        : [];
+  }
+}
 
 function RecurringPage() {
   const { activeFamily } = useActiveFamily();
