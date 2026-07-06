@@ -163,4 +163,22 @@
     color: var(--color-foreground);
     font-feature-settings: "ss01", "cv11";
   }
+
+  select,
+  select option,
+  select optgroup {
+    background-color: var(--color-popover);
+    color: var(--color-popover-foreground);
+  }
+
+  select option:checked,
+  select option:hover,
+  select option:focus {
+    background-color: var(--color-primary);
+    color: var(--color-primary-foreground);
+  }
+
+  select option:disabled {
+    color: var(--color-muted-foreground);
+  }
 }
