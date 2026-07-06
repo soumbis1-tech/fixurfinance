@@ -20,6 +20,18 @@ export const Route = createFileRoute("/_authenticated/reports")({
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316", "#84cc16", "#a855f7", "#14b8a6", "#eab308"];
 
+const tooltipStyle = (currency: string) => ({
+  contentStyle: {
+    background: "var(--popover)",
+    border: "1px solid var(--border)",
+    borderRadius: 8,
+    color: "var(--popover-foreground)",
+  },
+  itemStyle: { color: "var(--popover-foreground)" },
+  labelStyle: { color: "var(--popover-foreground)" },
+  formatter: (v: number) => formatMoney(v, currency),
+});
+
 function defaultRange() {
   const end = new Date();
   const start = new Date(end.getFullYear(), end.getMonth() - 5, 1);
