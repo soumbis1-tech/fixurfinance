@@ -83,6 +83,23 @@ function Dashboard() {
     },
   });
 
+  const monthNonReimb = useQuery({
+    enabled: !!familyId,
+    queryKey: ["month_non_reimb", familyId, monthStart, monthEnd],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("expenses")
+        .select("amount")
+        .eq("family_id", familyId!)
+        .eq("type", "expense")
+        .eq("reimbursable", false)
+        .gte("date", monthStart)
+        .lte("date", monthEnd);
+      if (error) throw error;
+      return (data ?? []).reduce((s, r) => s + Number(r.amount), 0);
+    },
+  });
+
   const weekTotal = useQuery({
     enabled: !!familyId,
     queryKey: ["week_total", familyId, weekStart],
@@ -92,6 +109,7 @@ function Dashboard() {
         .select("amount")
         .eq("family_id", familyId!)
         .eq("type", "expense")
+        .eq("reimbursable", false)
         .gte("date", weekStart)
         .lte("date", weekEnd);
       if (error) throw error;
@@ -108,6 +126,7 @@ function Dashboard() {
         .select("amount")
         .eq("family_id", familyId!)
         .eq("type", "expense")
+        .eq("reimbursable", false)
         .eq("date", todayISO);
       if (error) throw error;
       return (data ?? []).reduce((s, r) => s + Number(r.amount), 0);
@@ -229,12 +248,9 @@ function Dashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
           label="This month"
-          value={formatMoney(
-            Math.max(0, (Number(monthly.data?.total ?? 0)) - (Number(monthly.data?.reimbursable_total ?? 0))),
-            currency,
-          )}
+          value={formatMoney(monthNonReimb.data ?? 0, currency)}
           icon={TrendingUp}
-          hint="Excludes pending reimbursables"
+          hint="Excludes reimbursables"
         />
         <StatCard
           label="This week"
