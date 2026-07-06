@@ -133,6 +133,27 @@ function Dashboard() {
     },
   });
 
+  const recurringInvestPaid = useQuery({
+    enabled: !!familyId,
+    queryKey: ["recurring_invest_paid", familyId, today.getFullYear(), today.getMonth() + 1],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("recurring_payment_status")
+        .select("status, recurring_expenses!inner(amount, type)")
+        .eq("family_id", familyId!)
+        .eq("period_year", today.getFullYear())
+        .eq("period_month", today.getMonth() + 1)
+        .eq("status", "paid")
+        .eq("recurring_expenses.type", "investment");
+      if (error) throw error;
+      return (data ?? []).reduce(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (s: number, r: any) => s + Number(r.recurring_expenses?.amount ?? 0),
+        0,
+      );
+    },
+  });
+
   const categories = useQuery({
     enabled: !!familyId,
     queryKey: ["category_summary", familyId, monthStart, monthEnd],
@@ -264,7 +285,11 @@ function Dashboard() {
         />
         <StatCard
           label="Investments (mo)"
-          value={formatMoney(monthly.data?.investment_total ?? 0, currency)}
+          value={formatMoney(
+            Number(monthly.data?.investment_total ?? 0) + Number(recurringInvestPaid.data ?? 0),
+            currency,
+          )}
+          hint="Includes paid recurring investments"
           icon={PiggyBank}
         />
         <StatCard
