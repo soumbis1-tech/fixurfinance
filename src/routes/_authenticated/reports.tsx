@@ -137,7 +137,7 @@ function ReportsPage() {
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                 <XAxis dataKey="day" fontSize={11} />
                 <YAxis fontSize={12} />
-                <Tooltip formatter={(v: number) => formatMoney(v, currency)} />
+                <Tooltip {...tooltipStyle(currency)} />
                 <Line type="monotone" dataKey="total" stroke="#10b981" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
@@ -151,7 +151,7 @@ function ReportsPage() {
                 <Pie data={catQ.data} dataKey="total" nameKey="category_name" innerRadius={50} outerRadius={90} paddingAngle={2}>
                   {catQ.data?.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Pie>
-                <Tooltip formatter={(v: number) => formatMoney(v, currency)} />
+                <Tooltip {...tooltipStyle(currency)} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
               </PieChart>
             </ResponsiveContainer>
@@ -166,7 +166,7 @@ function ReportsPage() {
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
               <XAxis type="number" fontSize={12} />
               <YAxis dataKey="member_name" type="category" fontSize={12} width={120} />
-              <Tooltip formatter={(v: number) => formatMoney(v, currency)} />
+              <Tooltip {...tooltipStyle(currency)} />
               <Bar dataKey="total" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
