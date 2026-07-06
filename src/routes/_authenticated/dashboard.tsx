@@ -383,6 +383,8 @@ function Dashboard() {
                       borderRadius: 8,
                       color: "var(--popover-foreground)",
                     }}
+                    itemStyle={{ color: "var(--popover-foreground)" }}
+                    labelStyle={{ color: "var(--popover-foreground)" }}
                     formatter={(v: number) => formatMoney(v, currency)}
                   />
                   <Bar dataKey="total" fill="var(--chart-1)" radius={[6, 6, 0, 0]} />
@@ -420,6 +422,8 @@ function Dashboard() {
                       borderRadius: 8,
                       color: "var(--popover-foreground)",
                     }}
+                    itemStyle={{ color: "var(--popover-foreground)" }}
+                    labelStyle={{ color: "var(--popover-foreground)" }}
                     formatter={(v: number) => formatMoney(v, currency)}
                   />
                 </PieChart>

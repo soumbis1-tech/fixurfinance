@@ -20,6 +20,18 @@ export const Route = createFileRoute("/_authenticated/reports")({
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316", "#84cc16", "#a855f7", "#14b8a6", "#eab308"];
 
+const tooltipStyle = (currency: string) => ({
+  contentStyle: {
+    background: "var(--popover)",
+    border: "1px solid var(--border)",
+    borderRadius: 8,
+    color: "var(--popover-foreground)",
+  },
+  itemStyle: { color: "var(--popover-foreground)" },
+  labelStyle: { color: "var(--popover-foreground)" },
+  formatter: (v: number) => formatMoney(v, currency),
+});
+
 function defaultRange() {
   const end = new Date();
   const start = new Date(end.getFullYear(), end.getMonth() - 5, 1);
@@ -110,7 +122,7 @@ function ReportsPage() {
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
               <XAxis dataKey="month" fontSize={12} />
               <YAxis fontSize={12} />
-              <Tooltip formatter={(v: number) => formatMoney(v, currency)} />
+              <Tooltip {...tooltipStyle(currency)} />
               <Bar dataKey="total" fill="#3b82f6" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -125,7 +137,7 @@ function ReportsPage() {
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                 <XAxis dataKey="day" fontSize={11} />
                 <YAxis fontSize={12} />
-                <Tooltip formatter={(v: number) => formatMoney(v, currency)} />
+                <Tooltip {...tooltipStyle(currency)} />
                 <Line type="monotone" dataKey="total" stroke="#10b981" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
@@ -139,7 +151,7 @@ function ReportsPage() {
                 <Pie data={catQ.data} dataKey="total" nameKey="category_name" innerRadius={50} outerRadius={90} paddingAngle={2}>
                   {catQ.data?.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Pie>
-                <Tooltip formatter={(v: number) => formatMoney(v, currency)} />
+                <Tooltip {...tooltipStyle(currency)} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
               </PieChart>
             </ResponsiveContainer>
@@ -154,7 +166,7 @@ function ReportsPage() {
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
               <XAxis type="number" fontSize={12} />
               <YAxis dataKey="member_name" type="category" fontSize={12} width={120} />
-              <Tooltip formatter={(v: number) => formatMoney(v, currency)} />
+              <Tooltip {...tooltipStyle(currency)} />
               <Bar dataKey="total" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
