@@ -109,9 +109,9 @@ export function ExpenseForm({
         trip_id: parsed.trip_id || null,
         comments: parsed.comments || null,
         reimbursable: parsed.reimbursable,
-        reimbursement_status: parsed.reimbursable
+        reimbursement_status: (parsed.reimbursable
           ? (initial?.reimbursement_status === "reimbursed" ? "reimbursed" : "pending")
-          : "not_applicable",
+          : "not_applicable") as "not_applicable" | "pending" | "reimbursed",
         source: "manual" as const,
         receipt_path,
         created_by: user?.id ?? null,
