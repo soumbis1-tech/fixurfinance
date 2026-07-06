@@ -65,10 +65,30 @@ type Row = {
   comments: string | null;
 };
 
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
 function todayMinus(days: number) {
   const d = new Date();
   d.setDate(d.getDate() - days);
   return d.toISOString().slice(0, 10);
+}
+type PresetKey = "last7" | "last30" | "thisMonth" | "lastMonth" | "thisYear" | "custom";
+function rangeForPreset(p: PresetKey): { from: string; to: string } | null {
+  const now = new Date();
+  const iso = (d: Date) => d.toISOString().slice(0, 10);
+  if (p === "last7") return { from: todayMinus(6), to: todayISO() };
+  if (p === "last30") return { from: todayMinus(29), to: todayISO() };
+  if (p === "thisMonth")
+    return { from: iso(new Date(now.getFullYear(), now.getMonth(), 1)), to: todayISO() };
+  if (p === "lastMonth") {
+    const s = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const e = new Date(now.getFullYear(), now.getMonth(), 0);
+    return { from: iso(s), to: iso(e) };
+  }
+  if (p === "thisYear")
+    return { from: iso(new Date(now.getFullYear(), 0, 1)), to: todayISO() };
+  return null;
 }
 
 function ExpensesPage() {
