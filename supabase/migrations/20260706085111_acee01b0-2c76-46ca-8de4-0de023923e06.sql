@@ -1,0 +1,1 @@
+UPDATE public.expenses SET reimbursement_status='pending' WHERE reimbursable=true AND reimbursement_status='not_applicable';
