@@ -180,6 +180,21 @@ function ExpensesPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const markPending = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("expenses")
+        .update({ reimbursement_status: "pending" })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["expenses"] });
+      toast.success("Marked pending");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const duplicate = useMutation({
     mutationFn: async (row: Row) => {
       const { id: _id, ...rest } = row as Row & { id: string };
@@ -474,19 +489,39 @@ function ExpensesPage() {
                   <td className="px-3 py-2 whitespace-nowrap">{formatDate(r.date)}</td>
                   <td className="px-3 py-2">
                     <div>{r.description}</div>
-                    {r.reimbursable && (
-                      <span
-                        className={`inline-block text-[10px] uppercase rounded px-1.5 py-0.5 mt-0.5 ${
-                          r.reimbursement_status === "reimbursed"
-                            ? "bg-green-500/15 text-green-600"
-                            : "bg-amber-500/15 text-amber-600"
-                        }`}
-                      >
-                        {r.reimbursement_status === "reimbursed"
-                          ? "Reimbursed"
-                          : "Reimbursable"}
-                      </span>
-                    )}
+                    <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                      {r.reimbursable && (
+                        <label className="inline-flex items-center gap-1 cursor-pointer" title="Mark as reimbursed once amount is credited">
+                          <input
+                            type="checkbox"
+                            className="h-3.5 w-3.5"
+                            checked={r.reimbursement_status === "reimbursed"}
+                            disabled={markReimbursed.isPending}
+                            onChange={(e) => {
+                              if (e.target.checked && r.reimbursement_status !== "reimbursed") {
+                                markReimbursed.mutate(r.id);
+                              } else if (!e.target.checked && r.reimbursement_status === "reimbursed") {
+                                markPending.mutate(r.id);
+                              }
+                            }}
+                          />
+                          <span
+                            className={`text-[10px] uppercase rounded px-1.5 py-0.5 ${
+                              r.reimbursement_status === "reimbursed"
+                                ? "bg-green-500/15 text-green-600"
+                                : "bg-amber-500/15 text-amber-600"
+                            }`}
+                          >
+                            {r.reimbursement_status === "reimbursed" ? "Reimbursed" : "Reimbursable"}
+                          </span>
+                        </label>
+                      )}
+                      {(r.comments ?? "").toLowerCase().includes("personal expense") && (
+                        <span className="text-[10px] uppercase rounded px-1.5 py-0.5 bg-blue-500/15 text-blue-600">
+                          Personal Expense
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-3 py-2 text-muted-foreground">
                     {catMap[r.category_id ?? ""] ?? "—"}
