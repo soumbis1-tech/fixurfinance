@@ -89,14 +89,16 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("expenses")
-        .select("amount")
+        .select("amount, comments")
         .eq("family_id", familyId!)
         .eq("type", "expense")
         .eq("reimbursable", false)
         .gte("date", monthStart)
         .lte("date", monthEnd);
       if (error) throw error;
-      return (data ?? []).reduce((s, r) => s + Number(r.amount), 0);
+      return (data ?? [])
+        .filter((r) => !(r.comments ?? "").toLowerCase().includes("personal expense"))
+        .reduce((s, r) => s + Number(r.amount), 0);
     },
   });
 
@@ -106,16 +108,64 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("expenses")
-        .select("amount")
+        .select("amount, comments")
         .eq("family_id", familyId!)
         .eq("type", "expense")
         .eq("reimbursable", false)
         .gte("date", weekStart)
         .lte("date", weekEnd);
       if (error) throw error;
-      return (data ?? []).reduce((s, r) => s + Number(r.amount), 0);
+      return (data ?? [])
+        .filter((r) => !(r.comments ?? "").toLowerCase().includes("personal expense"))
+        .reduce((s, r) => s + Number(r.amount), 0);
     },
   });
+
+  const todayTotal = useQuery({
+    enabled: !!familyId,
+    queryKey: ["today_total", familyId, todayISO],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("expenses")
+        .select("amount, comments")
+        .eq("family_id", familyId!)
+        .eq("type", "expense")
+        .eq("reimbursable", false)
+        .eq("date", todayISO);
+      if (error) throw error;
+      return (data ?? [])
+        .filter((r) => !(r.comments ?? "").toLowerCase().includes("personal expense"))
+        .reduce((s, r) => s + Number(r.amount), 0);
+    },
+  });
+
+  const personalByMember = useQuery({
+    enabled: !!familyId,
+    queryKey: ["personal_by_member", familyId, monthStart, monthEnd],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("expenses")
+        .select("amount, comments, paid_by, family_members!expenses_paid_by_fkey(display_name)")
+        .eq("family_id", familyId!)
+        .eq("type", "expense")
+        .gte("date", monthStart)
+        .lte("date", monthEnd);
+      if (error) throw error;
+      const map = new Map<string, { name: string; total: number; count: number }>();
+      for (const r of data ?? []) {
+        if (!(r.comments ?? "").toLowerCase().includes("personal expense")) continue;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const name = (r as any).family_members?.display_name ?? "Unknown";
+        const key = r.paid_by ?? "unknown";
+        const cur = map.get(key) ?? { name, total: 0, count: 0 };
+        cur.total += Number(r.amount);
+        cur.count += 1;
+        map.set(key, cur);
+      }
+      return Array.from(map.values()).sort((a, b) => b.total - a.total);
+    },
+  });
+
 
   const todayTotal = useQuery({
     enabled: !!familyId,
