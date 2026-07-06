@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDate, formatMoney } from "@/lib/format";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
 import {
   Loader2,
   Pencil,
@@ -22,7 +23,14 @@ import {
   Download,
   Plus,
   Search,
+  FileSpreadsheet,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,10 +65,30 @@ type Row = {
   comments: string | null;
 };
 
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
 function todayMinus(days: number) {
   const d = new Date();
   d.setDate(d.getDate() - days);
   return d.toISOString().slice(0, 10);
+}
+type PresetKey = "last7" | "last30" | "thisMonth" | "lastMonth" | "thisYear" | "custom";
+function rangeForPreset(p: PresetKey): { from: string; to: string } | null {
+  const now = new Date();
+  const iso = (d: Date) => d.toISOString().slice(0, 10);
+  if (p === "last7") return { from: todayMinus(6), to: todayISO() };
+  if (p === "last30") return { from: todayMinus(29), to: todayISO() };
+  if (p === "thisMonth")
+    return { from: iso(new Date(now.getFullYear(), now.getMonth(), 1)), to: todayISO() };
+  if (p === "lastMonth") {
+    const s = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const e = new Date(now.getFullYear(), now.getMonth(), 0);
+    return { from: iso(s), to: iso(e) };
+  }
+  if (p === "thisYear")
+    return { from: iso(new Date(now.getFullYear(), 0, 1)), to: todayISO() };
+  return null;
 }
 
 function ExpensesPage() {
@@ -231,6 +259,70 @@ function ExpensesPage() {
     URL.revokeObjectURL(url);
   }
 
+  async function exportExcel(preset: PresetKey) {
+    if (!familyId) return;
+    let start = from;
+    let end = to;
+    if (preset !== "custom") {
+      const r = rangeForPreset(preset);
+      if (r) {
+        start = r.from;
+        end = r.to;
+      }
+    }
+    const t = toast.loading("Preparing Excel…");
+    try {
+      const { data, error } = await supabase
+        .from("expenses")
+        .select(
+          "id, date, description, amount, type, paid_by, category_id, payment_account_id, trip_id, reimbursable, reimbursement_status, source, comments",
+        )
+        .eq("family_id", familyId)
+        .gte("date", start)
+        .lte("date", end)
+        .order("date", { ascending: false })
+        .limit(10000);
+      if (error) throw error;
+      const rows = (data ?? []) as Row[];
+      const aoa: (string | number)[][] = [
+        [
+          "Date","Description","Amount","Type","Category","Paid By","Account",
+          "Trip","Reimbursable","Reimbursement Status","Source","Comments",
+        ],
+        ...rows.map((r) => [
+          r.date,
+          r.description,
+          Number(r.amount),
+          r.type,
+          catMap[r.category_id ?? ""] ?? "",
+          memberMap[r.paid_by ?? ""] ?? "",
+          accountMap[r.payment_account_id ?? ""] ?? "",
+          tripMap[r.trip_id ?? ""] ?? "",
+          r.reimbursable ? "yes" : "no",
+          r.reimbursement_status,
+          r.source,
+          r.comments ?? "",
+        ]),
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+      ws["!cols"] = [{ wch: 12 }, { wch: 32 }, { wch: 12 }, { wch: 12 }, { wch: 18 }, { wch: 16 }, { wch: 16 }, { wch: 14 }, { wch: 12 }, { wch: 18 }, { wch: 10 }, { wch: 32 }];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Expenses");
+      XLSX.writeFile(wb, `expenses-${start}-to-${end}.xlsx`);
+      toast.success(`Exported ${rows.length} row(s)`, { id: t });
+    } catch (e) {
+      toast.error((e as Error).message, { id: t });
+    }
+  }
+
+  function applyPreset(p: PresetKey) {
+    const r = rangeForPreset(p);
+    if (r) {
+      setFrom(r.from);
+      setTo(r.to);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -240,11 +332,29 @@ function ExpensesPage() {
             {list.data?.length ?? 0} row(s) · Total {formatMoney(total, currency)}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <FileSpreadsheet className="h-4 w-4 mr-1" /> Export Excel
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => exportExcel("last7")}>Last 7 days</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportExcel("last30")}>Last 30 days</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportExcel("thisMonth")}>This month</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportExcel("lastMonth")}>Last month</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportExcel("thisYear")}>This year</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportExcel("custom")}>
+                Custom (current filter dates)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button variant="outline" size="sm" onClick={exportCSV}>
             <Download className="h-4 w-4 mr-1" /> Export CSV
           </Button>
           <Link to="/expenses/new">
+
             <Button size="sm">
               <Plus className="h-4 w-4 mr-1" /> Add
             </Button>
@@ -252,7 +362,23 @@ function ExpensesPage() {
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="text-xs text-muted-foreground mr-1">Quick range:</span>
+        {([
+          ["last7", "Last 7 days"],
+          ["last30", "Last 30 days"],
+          ["thisMonth", "This month"],
+          ["lastMonth", "Last month"],
+          ["thisYear", "This year"],
+        ] as [PresetKey, string][]).map(([key, label]) => (
+          <Button key={key} variant="outline" size="sm" onClick={() => applyPreset(key)}>
+            {label}
+          </Button>
+        ))}
+      </div>
+
       <div className="rounded-xl border border-border bg-card p-3 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+
         <div className="relative">
           <Search className="h-4 w-4 absolute left-2 top-2.5 text-muted-foreground" />
           <Input

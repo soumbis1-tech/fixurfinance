@@ -39,6 +39,7 @@ export type ExpenseFormValues = z.infer<typeof schema>;
 export type ExpenseInitial = Partial<ExpenseFormValues> & {
   id?: string;
   receipt_path?: string | null;
+  reimbursement_status?: "not_applicable" | "pending" | "reimbursed" | null;
 };
 
 export function ExpenseForm({
@@ -108,6 +109,9 @@ export function ExpenseForm({
         trip_id: parsed.trip_id || null,
         comments: parsed.comments || null,
         reimbursable: parsed.reimbursable,
+        reimbursement_status: (parsed.reimbursable
+          ? (initial?.reimbursement_status === "reimbursed" ? "reimbursed" : "pending")
+          : "not_applicable") as "not_applicable" | "pending" | "reimbursed",
         source: "manual" as const,
         receipt_path,
         created_by: user?.id ?? null,
