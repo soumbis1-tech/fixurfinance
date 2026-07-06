@@ -422,6 +422,8 @@ function Dashboard() {
                       borderRadius: 8,
                       color: "var(--popover-foreground)",
                     }}
+                    itemStyle={{ color: "var(--popover-foreground)" }}
+                    labelStyle={{ color: "var(--popover-foreground)" }}
                     formatter={(v: number) => formatMoney(v, currency)}
                   />
                 </PieChart>
