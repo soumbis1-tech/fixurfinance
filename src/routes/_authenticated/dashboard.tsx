@@ -346,9 +346,16 @@ function Dashboard() {
             (personalByMember.data ?? []).reduce((s, m) => s + m.total, 0),
             currency,
           )}
-          hint="Marked as personal expense"
+          hint={
+            (personalByMember.data?.length ?? 0) === 0
+              ? "Marked as personal expense"
+              : personalByMember.data!.length === 1
+                ? `Paid by ${personalByMember.data![0].name}`
+                : `Paid by ${personalByMember.data!.map((m) => m.name).join(", ")}`
+          }
           icon={User}
         />
+
         <StatCard
           label="Recurring paid / due"
           value={`${recurringUnpaid.data?.paid ?? 0} / ${recurringUnpaid.data?.due ?? 0}`}
