@@ -18,7 +18,7 @@ function EditExpense() {
       const { data, error } = await supabase
         .from("expenses")
         .select(
-          "id, date, description, amount, type, paid_by, category_id, payment_account_id, trip_id, comments, reimbursable, receipt_path",
+          "id, date, description, amount, type, paid_by, category_id, payment_account_id, trip_id, comments, reimbursable, reimbursement_status, receipt_path",
         )
         .eq("id", id)
         .single();
