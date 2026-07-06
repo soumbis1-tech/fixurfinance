@@ -180,6 +180,21 @@ function ExpensesPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const markPending = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("expenses")
+        .update({ reimbursement_status: "pending" })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["expenses"] });
+      toast.success("Marked pending");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const duplicate = useMutation({
     mutationFn: async (row: Row) => {
       const { id: _id, ...rest } = row as Row & { id: string };
