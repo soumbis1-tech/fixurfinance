@@ -285,7 +285,11 @@ function Dashboard() {
         />
         <StatCard
           label="Investments (mo)"
-          value={formatMoney(monthly.data?.investment_total ?? 0, currency)}
+          value={formatMoney(
+            Number(monthly.data?.investment_total ?? 0) + Number(recurringInvestPaid.data ?? 0),
+            currency,
+          )}
+          hint="Includes paid recurring investments"
           icon={PiggyBank}
         />
         <StatCard
