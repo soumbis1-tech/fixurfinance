@@ -306,7 +306,7 @@ function Dashboard() {
           label="This month"
           value={formatMoney(monthNonReimb.data ?? 0, currency)}
           icon={TrendingUp}
-          hint="Excludes reimbursables"
+          hint="Excludes reimbursables & personal"
         />
         <StatCard
           label="This week"
@@ -333,11 +333,21 @@ function Dashboard() {
           icon={RefreshCw}
         />
         <StatCard
+          label="Personal (mo)"
+          value={formatMoney(
+            (personalByMember.data ?? []).reduce((s, m) => s + m.total, 0),
+            currency,
+          )}
+          hint="Marked as personal expense"
+          icon={User}
+        />
+        <StatCard
           label="Recurring paid / due"
           value={`${recurringUnpaid.data?.paid ?? 0} / ${recurringUnpaid.data?.due ?? 0}`}
           icon={Wallet}
         />
       </div>
+
 
       <div className="grid lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 rounded-xl border border-border bg-card p-4">
