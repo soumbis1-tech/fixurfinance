@@ -167,21 +167,6 @@ function Dashboard() {
   });
 
 
-  const todayTotal = useQuery({
-    enabled: !!familyId,
-    queryKey: ["today_total", familyId, todayISO],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("expenses")
-        .select("amount")
-        .eq("family_id", familyId!)
-        .eq("type", "expense")
-        .eq("reimbursable", false)
-        .eq("date", todayISO);
-      if (error) throw error;
-      return (data ?? []).reduce((s, r) => s + Number(r.amount), 0);
-    },
-  });
 
   const recurringInvestPaid = useQuery({
     enabled: !!familyId,
