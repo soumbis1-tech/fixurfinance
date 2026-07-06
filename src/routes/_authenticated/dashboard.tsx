@@ -143,20 +143,27 @@ function Dashboard() {
     enabled: !!familyId,
     queryKey: ["personal_by_member", familyId, monthStart, monthEnd],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("expenses")
-        .select("amount, comments, paid_by, family_members!expenses_paid_by_fkey(display_name)")
-        .eq("family_id", familyId!)
-        .eq("type", "expense")
-        .gte("date", monthStart)
-        .lte("date", monthEnd);
-      if (error) throw error;
+      const [expRes, memRes] = await Promise.all([
+        supabase
+          .from("expenses")
+          .select("amount, comments, paid_by")
+          .eq("family_id", familyId!)
+          .eq("type", "expense")
+          .gte("date", monthStart)
+          .lte("date", monthEnd),
+        supabase
+          .from("family_members")
+          .select("id, display_name")
+          .eq("family_id", familyId!),
+      ]);
+      if (expRes.error) throw expRes.error;
+      if (memRes.error) throw memRes.error;
+      const nameById = new Map((memRes.data ?? []).map((m) => [m.id, m.display_name]));
       const map = new Map<string, { name: string; total: number; count: number }>();
-      for (const r of data ?? []) {
+      for (const r of expRes.data ?? []) {
         if (!(r.comments ?? "").toLowerCase().includes("personal expense")) continue;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const name = (r as any).family_members?.display_name ?? "Unknown";
         const key = r.paid_by ?? "unknown";
+        const name = (r.paid_by && nameById.get(r.paid_by)) || "Unassigned";
         const cur = map.get(key) ?? { name, total: 0, count: 0 };
         cur.total += Number(r.amount);
         cur.count += 1;
@@ -165,6 +172,7 @@ function Dashboard() {
       return Array.from(map.values()).sort((a, b) => b.total - a.total);
     },
   });
+
 
 
 
