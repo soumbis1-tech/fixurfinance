@@ -248,12 +248,9 @@ function Dashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
           label="This month"
-          value={formatMoney(
-            Math.max(0, (Number(monthly.data?.total ?? 0)) - (Number(monthly.data?.reimbursable_total ?? 0))),
-            currency,
-          )}
+          value={formatMoney(monthNonReimb.data ?? 0, currency)}
           icon={TrendingUp}
-          hint="Excludes pending reimbursables"
+          hint="Excludes reimbursables"
         />
         <StatCard
           label="This week"
