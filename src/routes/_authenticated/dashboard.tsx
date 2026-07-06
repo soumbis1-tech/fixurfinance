@@ -17,7 +17,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import { Wallet, TrendingUp, Calendar, Receipt, PiggyBank, RefreshCw, Loader2 } from "lucide-react";
+import { Wallet, TrendingUp, Calendar, Receipt, PiggyBank, RefreshCw, Loader2, User } from "lucide-react";
 import { SetupChecklist } from "@/components/app/SetupChecklist";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
