@@ -362,7 +362,23 @@ function ExpensesPage() {
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="text-xs text-muted-foreground mr-1">Quick range:</span>
+        {([
+          ["last7", "Last 7 days"],
+          ["last30", "Last 30 days"],
+          ["thisMonth", "This month"],
+          ["lastMonth", "Last month"],
+          ["thisYear", "This year"],
+        ] as [PresetKey, string][]).map(([key, label]) => (
+          <Button key={key} variant="outline" size="sm" onClick={() => applyPreset(key)}>
+            {label}
+          </Button>
+        ))}
+      </div>
+
       <div className="rounded-xl border border-border bg-card p-3 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+
         <div className="relative">
           <Search className="h-4 w-4 absolute left-2 top-2.5 text-muted-foreground" />
           <Input
