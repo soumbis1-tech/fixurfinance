@@ -110,7 +110,7 @@ function ReportsPage() {
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
               <XAxis dataKey="month" fontSize={12} />
               <YAxis fontSize={12} />
-              <Tooltip formatter={(v: number) => formatMoney(v, currency)} />
+              <Tooltip {...tooltipStyle(currency)} />
               <Bar dataKey="total" fill="#3b82f6" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
