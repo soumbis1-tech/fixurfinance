@@ -17,7 +17,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import { Wallet, TrendingUp, Calendar, Receipt, PiggyBank, RefreshCw, Loader2 } from "lucide-react";
+import { Wallet, TrendingUp, Calendar, Receipt, PiggyBank, RefreshCw, Loader2, User } from "lucide-react";
 import { SetupChecklist } from "@/components/app/SetupChecklist";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -89,14 +89,16 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("expenses")
-        .select("amount")
+        .select("amount, comments")
         .eq("family_id", familyId!)
         .eq("type", "expense")
         .eq("reimbursable", false)
         .gte("date", monthStart)
         .lte("date", monthEnd);
       if (error) throw error;
-      return (data ?? []).reduce((s, r) => s + Number(r.amount), 0);
+      return (data ?? [])
+        .filter((r) => !(r.comments ?? "").toLowerCase().includes("personal expense"))
+        .reduce((s, r) => s + Number(r.amount), 0);
     },
   });
 
@@ -106,14 +108,16 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("expenses")
-        .select("amount")
+        .select("amount, comments")
         .eq("family_id", familyId!)
         .eq("type", "expense")
         .eq("reimbursable", false)
         .gte("date", weekStart)
         .lte("date", weekEnd);
       if (error) throw error;
-      return (data ?? []).reduce((s, r) => s + Number(r.amount), 0);
+      return (data ?? [])
+        .filter((r) => !(r.comments ?? "").toLowerCase().includes("personal expense"))
+        .reduce((s, r) => s + Number(r.amount), 0);
     },
   });
 
@@ -123,15 +127,46 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("expenses")
-        .select("amount")
+        .select("amount, comments")
         .eq("family_id", familyId!)
         .eq("type", "expense")
         .eq("reimbursable", false)
         .eq("date", todayISO);
       if (error) throw error;
-      return (data ?? []).reduce((s, r) => s + Number(r.amount), 0);
+      return (data ?? [])
+        .filter((r) => !(r.comments ?? "").toLowerCase().includes("personal expense"))
+        .reduce((s, r) => s + Number(r.amount), 0);
     },
   });
+
+  const personalByMember = useQuery({
+    enabled: !!familyId,
+    queryKey: ["personal_by_member", familyId, monthStart, monthEnd],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("expenses")
+        .select("amount, comments, paid_by, family_members!expenses_paid_by_fkey(display_name)")
+        .eq("family_id", familyId!)
+        .eq("type", "expense")
+        .gte("date", monthStart)
+        .lte("date", monthEnd);
+      if (error) throw error;
+      const map = new Map<string, { name: string; total: number; count: number }>();
+      for (const r of data ?? []) {
+        if (!(r.comments ?? "").toLowerCase().includes("personal expense")) continue;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const name = (r as any).family_members?.display_name ?? "Unknown";
+        const key = r.paid_by ?? "unknown";
+        const cur = map.get(key) ?? { name, total: 0, count: 0 };
+        cur.total += Number(r.amount);
+        cur.count += 1;
+        map.set(key, cur);
+      }
+      return Array.from(map.values()).sort((a, b) => b.total - a.total);
+    },
+  });
+
+
 
   const recurringInvestPaid = useQuery({
     enabled: !!familyId,
@@ -271,7 +306,7 @@ function Dashboard() {
           label="This month"
           value={formatMoney(monthNonReimb.data ?? 0, currency)}
           icon={TrendingUp}
-          hint="Excludes reimbursables"
+          hint="Excludes reimbursables & personal"
         />
         <StatCard
           label="This week"
@@ -298,11 +333,21 @@ function Dashboard() {
           icon={RefreshCw}
         />
         <StatCard
+          label="Personal (mo)"
+          value={formatMoney(
+            (personalByMember.data ?? []).reduce((s, m) => s + m.total, 0),
+            currency,
+          )}
+          hint="Marked as personal expense"
+          icon={User}
+        />
+        <StatCard
           label="Recurring paid / due"
           value={`${recurringUnpaid.data?.paid ?? 0} / ${recurringUnpaid.data?.due ?? 0}`}
           icon={Wallet}
         />
       </div>
+
 
       <div className="grid lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 rounded-xl border border-border bg-card p-4">
@@ -420,7 +465,37 @@ function Dashboard() {
           )}
         </div>
       </div>
+
+      <div className="rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold">Personal expenses by member — {format(today, "MMMM yyyy")}</h3>
+          <span className="text-xs text-muted-foreground">
+            Total {formatMoney((personalByMember.data ?? []).reduce((s, m) => s + m.total, 0), currency)}
+          </span>
+        </div>
+        {(personalByMember.data?.length ?? 0) === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No personal expenses this month. Mark an expense with "personal expense" in the comments to track it here.
+          </p>
+        ) : (
+          <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {personalByMember.data?.map((m) => (
+              <li
+                key={m.name}
+                className="flex items-center justify-between rounded-lg border border-border bg-background/50 px-3 py-2 text-sm"
+              >
+                <div className="min-w-0">
+                  <div className="truncate font-medium">{m.name}</div>
+                  <div className="text-xs text-muted-foreground">{m.count} item{m.count === 1 ? "" : "s"}</div>
+                </div>
+                <span className="tabular-nums font-semibold">{formatMoney(m.total, currency)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
+
   );
 }
 
