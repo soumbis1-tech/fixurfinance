@@ -2,7 +2,13 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ExpenseForm } from "@/components/expenses/ExpenseForm";
+import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
+
+export const Route = createFileRoute("/_authenticated/expenses/$id/edit")({
+  head: () => ({ meta: [{ title: "Edit expense" }] }),
+  component: EditExpense,
+});
 
 export const Route = createFileRoute("/_authenticated/expenses/$id/edit")({
   head: () => ({ meta: [{ title: "Edit expense" }] }),
