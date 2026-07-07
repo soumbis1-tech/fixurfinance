@@ -566,21 +566,32 @@ function ExpensesPage() {
                       >
                         <Copy className="h-4 w-4" />
                       </Button>
-                      <Link
-                        to="/expenses/$id/edit"
-                        params={{ id: r.id }}
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-accent"
-                        title="Edit"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Link>
+                      {canModify(r) ? (
+                        <Link
+                          to="/expenses/$id/edit"
+                          params={{ id: r.id }}
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-accent"
+                          title="Edit"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Link>
+                      ) : (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Only the person who added this can edit"
+                          onClick={unauthorized}
+                        >
+                          <Pencil className="h-4 w-4 opacity-50" />
+                        </Button>
+                      )}
                       <Button
                         size="icon"
                         variant="ghost"
-                        title="Delete"
-                        onClick={() => setDeleteId(r.id)}
+                        title={canModify(r) ? "Delete" : "Only the person who added this can delete"}
+                        onClick={() => (canModify(r) ? setDeleteId(r.id) : unauthorized())}
                       >
-                        <Trash2 className="h-4 w-4 text-destructive" />
+                        <Trash2 className={`h-4 w-4 ${canModify(r) ? "text-destructive" : "opacity-50"}`} />
                       </Button>
                     </div>
                   </td>
