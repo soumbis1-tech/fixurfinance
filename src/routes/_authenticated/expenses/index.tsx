@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveFamily } from "@/hooks/use-families";
+import { useAuth } from "@/hooks/use-auth";
 import {
   useCategories,
   useMembers,
@@ -70,6 +71,7 @@ type Row = {
   reimbursement_status: ReimbStatus;
   source: string;
   comments: string | null;
+  created_by: string | null;
 };
 
 function todayISO() {
@@ -100,9 +102,13 @@ function rangeForPreset(p: PresetKey): { from: string; to: string } | null {
 
 function ExpensesPage() {
   const { activeFamily } = useActiveFamily();
+  const { user } = useAuth();
   const familyId = activeFamily?.id;
   const currency = activeFamily?.currency ?? "INR";
   const qc = useQueryClient();
+  const canModify = (r: Pick<Row, "created_by">) => !!user && r.created_by === user.id;
+  const unauthorized = () =>
+    toast.error("Unauthorized: only the person who added this expense can modify or delete it.");
 
   const [search, setSearch] = useState("");
   const [from, setFrom] = useState(todayMinus(30));
@@ -148,7 +154,7 @@ function ExpensesPage() {
       let q = supabase
         .from("expenses")
         .select(
-          "id, date, description, amount, type, paid_by, category_id, payment_account_id, trip_id, reimbursable, reimbursement_status, source, comments",
+          "id, date, description, amount, type, paid_by, category_id, payment_account_id, trip_id, reimbursable, reimbursement_status, source, comments, created_by",
         )
         .eq("family_id", familyId!)
         .gte("date", from)
@@ -560,21 +566,32 @@ function ExpensesPage() {
                       >
                         <Copy className="h-4 w-4" />
                       </Button>
-                      <Link
-                        to="/expenses/$id/edit"
-                        params={{ id: r.id }}
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-accent"
-                        title="Edit"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Link>
+                      {canModify(r) ? (
+                        <Link
+                          to="/expenses/$id/edit"
+                          params={{ id: r.id }}
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-accent"
+                          title="Edit"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Link>
+                      ) : (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Only the person who added this can edit"
+                          onClick={unauthorized}
+                        >
+                          <Pencil className="h-4 w-4 opacity-50" />
+                        </Button>
+                      )}
                       <Button
                         size="icon"
                         variant="ghost"
-                        title="Delete"
-                        onClick={() => setDeleteId(r.id)}
+                        title={canModify(r) ? "Delete" : "Only the person who added this can delete"}
+                        onClick={() => (canModify(r) ? setDeleteId(r.id) : unauthorized())}
                       >
-                        <Trash2 className="h-4 w-4 text-destructive" />
+                        <Trash2 className={`h-4 w-4 ${canModify(r) ? "text-destructive" : "opacity-50"}`} />
                       </Button>
                     </div>
                   </td>

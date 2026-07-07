@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ExpenseForm } from "@/components/expenses/ExpenseForm";
+import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/expenses/$id/edit")({
@@ -12,13 +13,14 @@ export const Route = createFileRoute("/_authenticated/expenses/$id/edit")({
 function EditExpense() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const q = useQuery({
     queryKey: ["expense", id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("expenses")
         .select(
-          "id, date, description, amount, type, paid_by, category_id, payment_account_id, trip_id, comments, reimbursable, reimbursement_status, receipt_path",
+          "id, date, description, amount, type, paid_by, category_id, payment_account_id, trip_id, comments, reimbursable, reimbursement_status, receipt_path, created_by",
         )
         .eq("id", id)
         .single();
@@ -26,6 +28,8 @@ function EditExpense() {
       return data;
     },
   });
+
+  const isOwner = !!user && !!q.data && q.data.created_by === user.id;
 
   return (
     <div className="space-y-4">
@@ -36,13 +40,22 @@ function EditExpense() {
             <Loader2 className="h-4 w-4 animate-spin mr-2" /> Loading…
           </div>
         ) : q.data ? (
-          <ExpenseForm
-            initial={{
-              ...q.data,
-              amount: Number(q.data.amount),
-            }}
-            onSaved={() => navigate({ to: "/expenses" })}
-          />
+          isOwner ? (
+            <ExpenseForm
+              initial={{
+                ...q.data,
+                amount: Number(q.data.amount),
+              }}
+              onSaved={() => navigate({ to: "/expenses" })}
+            />
+          ) : (
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-destructive">Unauthorized</p>
+              <p className="text-sm text-muted-foreground">
+                Only the person who originally added this expense can modify or delete it.
+              </p>
+            </div>
+          )
         ) : (
           <p className="text-sm text-muted-foreground">Not found.</p>
         )}
