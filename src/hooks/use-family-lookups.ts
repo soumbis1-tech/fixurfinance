@@ -42,7 +42,7 @@ export function usePaymentAccounts(familyId: string | null | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payment_accounts")
-        .select("id, name, type, masked_number, active")
+        .select("id, name, type, masked_number, beneficiary_name, active")
         .eq("family_id", familyId!)
         .eq("active", true)
         .order("name");
