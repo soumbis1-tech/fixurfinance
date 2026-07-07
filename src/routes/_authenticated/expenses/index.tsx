@@ -102,9 +102,13 @@ function rangeForPreset(p: PresetKey): { from: string; to: string } | null {
 
 function ExpensesPage() {
   const { activeFamily } = useActiveFamily();
+  const { user } = useAuth();
   const familyId = activeFamily?.id;
   const currency = activeFamily?.currency ?? "INR";
   const qc = useQueryClient();
+  const canModify = (r: Pick<Row, "created_by">) => !!user && r.created_by === user.id;
+  const unauthorized = () =>
+    toast.error("Unauthorized: only the person who added this expense can modify or delete it.");
 
   const [search, setSearch] = useState("");
   const [from, setFrom] = useState(todayMinus(30));
