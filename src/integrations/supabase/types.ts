@@ -798,6 +798,7 @@ export type Database = {
       payment_accounts: {
         Row: {
           active: boolean
+          beneficiary_name: string | null
           created_at: string
           family_id: string
           id: string
@@ -808,6 +809,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          beneficiary_name?: string | null
           created_at?: string
           family_id: string
           id?: string
@@ -818,6 +820,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          beneficiary_name?: string | null
           created_at?: string
           family_id?: string
           id?: string
