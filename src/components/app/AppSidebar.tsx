@@ -24,6 +24,7 @@ export const NAV_ITEMS = [
   { to: "/recurring", label: "Recurring", icon: Repeat },
   { to: "/trips", label: "Trips", icon: Plane },
   { to: "/credit-card", label: "Credit Card", icon: CreditCard },
+  { to: "/accounts", label: "Payment Accounts", icon: Wallet },
   { to: "/reports", label: "Reports", icon: BarChart3 },
   { to: "/budgets", label: "Budgets", icon: Target },
   { to: "/settings", label: "Settings", icon: Settings },

@@ -24,6 +24,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCreditCardRouteImport } from './routes/_authenticated/credit-card'
 import { Route as AuthenticatedBudgetsRouteImport } from './routes/_authenticated/budgets'
 import { Route as AuthenticatedBankStatementsRouteImport } from './routes/_authenticated/bank-statements'
+import { Route as AuthenticatedAccountsRouteImport } from './routes/_authenticated/accounts'
 import { Route as AuthenticatedExpensesIndexRouteImport } from './routes/_authenticated/expenses/index'
 import { Route as AuthenticatedExpensesNewRouteImport } from './routes/_authenticated/expenses/new'
 import { Route as ApiPublicCronWeeklyReportsRouteImport } from './routes/api/public/cron.weekly-reports'
@@ -104,6 +105,11 @@ const AuthenticatedBankStatementsRoute =
     path: '/bank-statements',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAccountsRoute = AuthenticatedAccountsRouteImport.update({
+  id: '/accounts',
+  path: '/accounts',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedExpensesIndexRoute =
   AuthenticatedExpensesIndexRouteImport.update({
     id: '/expenses/',
@@ -134,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/accounts': typeof AuthenticatedAccountsRoute
   '/bank-statements': typeof AuthenticatedBankStatementsRoute
   '/budgets': typeof AuthenticatedBudgetsRoute
   '/credit-card': typeof AuthenticatedCreditCardRoute
@@ -154,6 +161,7 @@ export interface FileRoutesByTo {
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/accounts': typeof AuthenticatedAccountsRoute
   '/bank-statements': typeof AuthenticatedBankStatementsRoute
   '/budgets': typeof AuthenticatedBudgetsRoute
   '/credit-card': typeof AuthenticatedCreditCardRoute
@@ -176,6 +184,7 @@ export interface FileRoutesById {
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/accounts': typeof AuthenticatedAccountsRoute
   '/_authenticated/bank-statements': typeof AuthenticatedBankStatementsRoute
   '/_authenticated/budgets': typeof AuthenticatedBudgetsRoute
   '/_authenticated/credit-card': typeof AuthenticatedCreditCardRoute
@@ -198,6 +207,7 @@ export interface FileRouteTypes {
     | '/accept-invite'
     | '/auth'
     | '/reset-password'
+    | '/accounts'
     | '/bank-statements'
     | '/budgets'
     | '/credit-card'
@@ -218,6 +228,7 @@ export interface FileRouteTypes {
     | '/accept-invite'
     | '/auth'
     | '/reset-password'
+    | '/accounts'
     | '/bank-statements'
     | '/budgets'
     | '/credit-card'
@@ -239,6 +250,7 @@ export interface FileRouteTypes {
     | '/accept-invite'
     | '/auth'
     | '/reset-password'
+    | '/_authenticated/accounts'
     | '/_authenticated/bank-statements'
     | '/_authenticated/budgets'
     | '/_authenticated/credit-card'
@@ -371,6 +383,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBankStatementsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/accounts': {
+      id: '/_authenticated/accounts'
+      path: '/accounts'
+      fullPath: '/accounts'
+      preLoaderRoute: typeof AuthenticatedAccountsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/expenses/': {
       id: '/_authenticated/expenses/'
       path: '/expenses'
@@ -403,6 +422,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAccountsRoute: typeof AuthenticatedAccountsRoute
   AuthenticatedBankStatementsRoute: typeof AuthenticatedBankStatementsRoute
   AuthenticatedBudgetsRoute: typeof AuthenticatedBudgetsRoute
   AuthenticatedCreditCardRoute: typeof AuthenticatedCreditCardRoute
@@ -419,6 +439,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAccountsRoute: AuthenticatedAccountsRoute,
   AuthenticatedBankStatementsRoute: AuthenticatedBankStatementsRoute,
   AuthenticatedBudgetsRoute: AuthenticatedBudgetsRoute,
   AuthenticatedCreditCardRoute: AuthenticatedCreditCardRoute,
