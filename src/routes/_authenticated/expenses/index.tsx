@@ -154,7 +154,7 @@ function ExpensesPage() {
       let q = supabase
         .from("expenses")
         .select(
-          "id, date, description, amount, type, paid_by, category_id, payment_account_id, trip_id, reimbursable, reimbursement_status, source, comments",
+          "id, date, description, amount, type, paid_by, category_id, payment_account_id, trip_id, reimbursable, reimbursement_status, source, comments, created_by",
         )
         .eq("family_id", familyId!)
         .gte("date", from)
