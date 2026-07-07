@@ -40,13 +40,22 @@ function EditExpense() {
             <Loader2 className="h-4 w-4 animate-spin mr-2" /> Loading…
           </div>
         ) : q.data ? (
-          <ExpenseForm
-            initial={{
-              ...q.data,
-              amount: Number(q.data.amount),
-            }}
-            onSaved={() => navigate({ to: "/expenses" })}
-          />
+          isOwner ? (
+            <ExpenseForm
+              initial={{
+                ...q.data,
+                amount: Number(q.data.amount),
+              }}
+              onSaved={() => navigate({ to: "/expenses" })}
+            />
+          ) : (
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-destructive">Unauthorized</p>
+              <p className="text-sm text-muted-foreground">
+                Only the person who originally added this expense can modify or delete it.
+              </p>
+            </div>
+          )
         ) : (
           <p className="text-sm text-muted-foreground">Not found.</p>
         )}
