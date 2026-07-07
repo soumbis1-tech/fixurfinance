@@ -10,21 +10,17 @@ export const Route = createFileRoute("/_authenticated/expenses/$id/edit")({
   component: EditExpense,
 });
 
-export const Route = createFileRoute("/_authenticated/expenses/$id/edit")({
-  head: () => ({ meta: [{ title: "Edit expense" }] }),
-  component: EditExpense,
-});
-
 function EditExpense() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const q = useQuery({
     queryKey: ["expense", id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("expenses")
         .select(
-          "id, date, description, amount, type, paid_by, category_id, payment_account_id, trip_id, comments, reimbursable, reimbursement_status, receipt_path",
+          "id, date, description, amount, type, paid_by, category_id, payment_account_id, trip_id, comments, reimbursable, reimbursement_status, receipt_path, created_by",
         )
         .eq("id", id)
         .single();
@@ -32,6 +28,8 @@ function EditExpense() {
       return data;
     },
   });
+
+  const isOwner = !!user && !!q.data && q.data.created_by === user.id;
 
   return (
     <div className="space-y-4">
