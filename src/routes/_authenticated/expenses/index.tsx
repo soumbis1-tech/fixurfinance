@@ -71,6 +71,7 @@ type Row = {
   reimbursement_status: ReimbStatus;
   source: string;
   comments: string | null;
+  created_by: string | null;
 };
 
 function todayISO() {
