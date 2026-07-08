@@ -87,7 +87,36 @@ export function ExpenseForm({
   const save = useMutation({
     mutationFn: async (v: ExpenseFormValues) => {
       if (!familyId) throw new Error("No active family");
+      // Required-field checks
+      if (!v.type) throw new Error("Type is required");
+      if (!v.category_id) throw new Error("Category is required");
+      if (!v.paid_by) throw new Error("Paid by is required");
+      if (!v.payment_account_id) throw new Error("Payment account is required");
+
       const parsed = schema.parse(v);
+
+      // Resolve synthetic "Other" category → ensure a real row exists for this family
+      let category_id: string | null = parsed.category_id || null;
+      if (category_id === "__other__") {
+        const { data: existing } = await supabase
+          .from("categories")
+          .select("id")
+          .eq("family_id", familyId)
+          .ilike("name", "Other")
+          .maybeSingle();
+        if (existing?.id) {
+          category_id = existing.id;
+        } else {
+          const { data: created, error: cErr } = await supabase
+            .from("categories")
+            .insert({ family_id: familyId, name: "Other" })
+            .select("id")
+            .single();
+          if (cErr) throw cErr;
+          category_id = created.id;
+        }
+      }
+
       let receipt_path: string | null = initial?.receipt_path ?? null;
       if (receipt) {
         const path = `${familyId}/${crypto.randomUUID()}-${receipt.name}`;
@@ -104,7 +133,7 @@ export function ExpenseForm({
         amount: parsed.amount,
         type: parsed.type,
         paid_by: parsed.paid_by || null,
-        category_id: parsed.category_id || null,
+        category_id,
         payment_account_id: parsed.payment_account_id || null,
         trip_id: parsed.trip_id || null,
         comments: parsed.comments || null,
