@@ -27,7 +27,7 @@ const schema = z.object({
   amount: z.coerce.number().positive("Amount must be > 0"),
   type: z.enum(["expense", "investment", "reimbursement", "income", "transfer"]),
   paid_by: z.string().uuid().nullable().optional(),
-  category_id: z.string().uuid().nullable().optional(),
+  category_id: z.string().nullable().optional(),
   payment_account_id: z.string().uuid().nullable().optional(),
   trip_id: z.string().uuid().nullable().optional(),
   comments: z.string().max(1000).nullable().optional(),
@@ -87,7 +87,36 @@ export function ExpenseForm({
   const save = useMutation({
     mutationFn: async (v: ExpenseFormValues) => {
       if (!familyId) throw new Error("No active family");
+      // Required-field checks
+      if (!v.type) throw new Error("Type is required");
+      if (!v.category_id) throw new Error("Category is required");
+      if (!v.paid_by) throw new Error("Paid by is required");
+      if (!v.payment_account_id) throw new Error("Payment account is required");
+
       const parsed = schema.parse(v);
+
+      // Resolve synthetic "Other" category → ensure a real row exists for this family
+      let category_id: string | null = parsed.category_id || null;
+      if (category_id === "__other__") {
+        const { data: existing } = await supabase
+          .from("categories")
+          .select("id")
+          .eq("family_id", familyId)
+          .ilike("name", "Other")
+          .maybeSingle();
+        if (existing?.id) {
+          category_id = existing.id;
+        } else {
+          const { data: created, error: cErr } = await supabase
+            .from("categories")
+            .insert({ family_id: familyId, name: "Other" })
+            .select("id")
+            .single();
+          if (cErr) throw cErr;
+          category_id = created.id;
+        }
+      }
+
       let receipt_path: string | null = initial?.receipt_path ?? null;
       if (receipt) {
         const path = `${familyId}/${crypto.randomUUID()}-${receipt.name}`;
@@ -104,7 +133,7 @@ export function ExpenseForm({
         amount: parsed.amount,
         type: parsed.type,
         paid_by: parsed.paid_by || null,
-        category_id: parsed.category_id || null,
+        category_id,
         payment_account_id: parsed.payment_account_id || null,
         trip_id: parsed.trip_id || null,
         comments: parsed.comments || null,
@@ -202,11 +231,16 @@ export function ExpenseForm({
         />
       </div>
 
+      <div className="rounded-md border border-border bg-muted/40 p-3 text-sm text-foreground">
+        In case of personal expense, please mention <strong>"Personal Expense"</strong> in the Comments section.
+      </div>
+
       <div className="grid sm:grid-cols-2 gap-4">
         <Select
-          label="Type"
+          label="Type *"
           value={values.type}
           onChange={(v) => set("type", v as ExpenseType)}
+          required
           options={[
             { value: "expense", label: "Expense" },
             { value: "investment", label: "Investment" },
@@ -216,29 +250,33 @@ export function ExpenseForm({
           ]}
         />
         <Select
-          label="Category"
+          label="Category *"
           value={values.category_id ?? ""}
           onChange={(v) => set("category_id", v || null)}
+          required
           options={[
-            { value: "", label: "— None —" },
+            { value: "", label: "— Select —" },
             ...(cats.data?.map((c) => ({ value: c.id, label: c.name })) ?? []),
+            { value: "__other__", label: "Other" },
           ]}
         />
         <Select
-          label="Paid by"
+          label="Paid by *"
           value={values.paid_by ?? ""}
           onChange={(v) => set("paid_by", v || null)}
+          required
           options={[
-            { value: "", label: "— None —" },
+            { value: "", label: "— Select —" },
             ...(members.data?.map((m) => ({ value: m.id, label: m.display_name })) ?? []),
           ]}
         />
         <Select
-          label="Payment account"
+          label="Payment account *"
           value={values.payment_account_id ?? ""}
           onChange={(v) => set("payment_account_id", v || null)}
+          required
           options={[
-            { value: "", label: "— None —" },
+            { value: "", label: "— Select —" },
             ...(accounts.data?.map((a) => ({
               value: a.id,
               label: `${a.name}${a.masked_number ? ` (${a.masked_number})` : ""}`,
@@ -325,11 +363,13 @@ function Select({
   value,
   onChange,
   options,
+  required,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
+  required?: boolean;
 }) {
   return (
     <div className="space-y-1.5">
@@ -337,6 +377,7 @@ function Select({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        required={required}
         className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
       >
         {options.map((o) => (
