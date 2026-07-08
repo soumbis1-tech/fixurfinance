@@ -231,11 +231,16 @@ export function ExpenseForm({
         />
       </div>
 
+      <div className="rounded-md border border-border bg-muted/40 p-3 text-sm text-foreground">
+        In case of personal expense, please mention <strong>"Personal Expense"</strong> in the Comments section.
+      </div>
+
       <div className="grid sm:grid-cols-2 gap-4">
         <Select
-          label="Type"
+          label="Type *"
           value={values.type}
           onChange={(v) => set("type", v as ExpenseType)}
+          required
           options={[
             { value: "expense", label: "Expense" },
             { value: "investment", label: "Investment" },
@@ -245,29 +250,33 @@ export function ExpenseForm({
           ]}
         />
         <Select
-          label="Category"
+          label="Category *"
           value={values.category_id ?? ""}
           onChange={(v) => set("category_id", v || null)}
+          required
           options={[
-            { value: "", label: "— None —" },
+            { value: "", label: "— Select —" },
             ...(cats.data?.map((c) => ({ value: c.id, label: c.name })) ?? []),
+            { value: "__other__", label: "Other" },
           ]}
         />
         <Select
-          label="Paid by"
+          label="Paid by *"
           value={values.paid_by ?? ""}
           onChange={(v) => set("paid_by", v || null)}
+          required
           options={[
-            { value: "", label: "— None —" },
+            { value: "", label: "— Select —" },
             ...(members.data?.map((m) => ({ value: m.id, label: m.display_name })) ?? []),
           ]}
         />
         <Select
-          label="Payment account"
+          label="Payment account *"
           value={values.payment_account_id ?? ""}
           onChange={(v) => set("payment_account_id", v || null)}
+          required
           options={[
-            { value: "", label: "— None —" },
+            { value: "", label: "— Select —" },
             ...(accounts.data?.map((a) => ({
               value: a.id,
               label: `${a.name}${a.masked_number ? ` (${a.masked_number})` : ""}`,
