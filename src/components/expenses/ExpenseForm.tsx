@@ -14,12 +14,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Select as UiSelect,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { z } from "zod";
 import { todayISO } from "@/lib/format";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, Plus } from "lucide-react";
 
 type ExpenseType = "expense" | "investment" | "reimbursement" | "income" | "transfer";
+
+const ADD_NEW = "__add_new__";
 
 const schema = z.object({
   date: z.string().min(1, "Date required"),
@@ -41,6 +58,8 @@ export type ExpenseInitial = Partial<ExpenseFormValues> & {
   receipt_path?: string | null;
   reimbursement_status?: "not_applicable" | "pending" | "reimbursed" | null;
 };
+
+type QuickAddKind = "category" | "member" | "account" | "trip" | null;
 
 export function ExpenseForm({
   initial,
@@ -74,8 +93,8 @@ export function ExpenseForm({
   });
   const [receipt, setReceipt] = useState<File | null>(null);
   const [addAnother, setAddAnother] = useState(false);
+  const [quickAdd, setQuickAdd] = useState<QuickAddKind>(null);
 
-  // Default paid_by to the current user's family_member, if available
   useEffect(() => {
     if (!initial && !values.paid_by && members.data && user) {
       const me = members.data.find((m) => m.id && (m as { user_id?: string }).user_id === user.id);
@@ -87,7 +106,6 @@ export function ExpenseForm({
   const save = useMutation({
     mutationFn: async (v: ExpenseFormValues) => {
       if (!familyId) throw new Error("No active family");
-      // Required-field checks
       if (!v.type) throw new Error("Type is required");
       if (!v.category_id) throw new Error("Category is required");
       if (!v.paid_by) throw new Error("Paid by is required");
@@ -95,7 +113,6 @@ export function ExpenseForm({
 
       const parsed = schema.parse(v);
 
-      // Resolve synthetic "Other" category → ensure a real row exists for this family
       let category_id: string | null = parsed.category_id || null;
       if (category_id === "__other__") {
         const { data: existing } = await supabase
@@ -190,6 +207,18 @@ export function ExpenseForm({
   const set = <K extends keyof ExpenseFormValues>(k: K, v: ExpenseFormValues[K]) =>
     setValues((s) => ({ ...s, [k]: v }));
 
+  function handleSelect(field: keyof ExpenseFormValues, kind: Exclude<QuickAddKind, null>, v: string) {
+    if (v === "__none__") {
+      set(field, null as never);
+      return;
+    }
+    if (v === ADD_NEW) {
+      setQuickAdd(kind);
+      return;
+    }
+    set(field, (v || null) as never);
+  }
+
   return (
     <form onSubmit={(e) => submit(e, false)} className="space-y-4 max-w-3xl">
       <div className="grid sm:grid-cols-2 gap-4">
@@ -236,11 +265,10 @@ export function ExpenseForm({
       </div>
 
       <div className="grid sm:grid-cols-2 gap-4">
-        <Select
+        <SmartSelect
           label="Type *"
           value={values.type}
           onChange={(v) => set("type", v as ExpenseType)}
-          required
           options={[
             { value: "expense", label: "Expense" },
             { value: "investment", label: "Investment" },
@@ -248,49 +276,48 @@ export function ExpenseForm({
             { value: "reimbursement", label: "Reimbursement" },
             { value: "transfer", label: "Transfer" },
           ]}
+          placeholder="Select"
         />
-        <Select
+        <SmartSelect
           label="Category *"
           value={values.category_id ?? ""}
-          onChange={(v) => set("category_id", v || null)}
-          required
+          onChange={(v) => handleSelect("category_id", "category", v)}
           options={[
-            { value: "", label: "— Select —" },
             ...(cats.data?.map((c) => ({ value: c.id, label: c.name })) ?? []),
             { value: "__other__", label: "Other" },
           ]}
+          addNewLabel="+ Add new category…"
+          placeholder="Select category"
         />
-        <Select
+        <SmartSelect
           label="Paid by *"
           value={values.paid_by ?? ""}
-          onChange={(v) => set("paid_by", v || null)}
-          required
-          options={[
-            { value: "", label: "— Select —" },
-            ...(members.data?.map((m) => ({ value: m.id, label: m.display_name })) ?? []),
-          ]}
+          onChange={(v) => handleSelect("paid_by", "member", v)}
+          options={members.data?.map((m) => ({ value: m.id, label: m.display_name })) ?? []}
+          addNewLabel="+ Add new member…"
+          placeholder="Select member"
         />
-        <Select
+        <SmartSelect
           label="Payment account *"
           value={values.payment_account_id ?? ""}
-          onChange={(v) => set("payment_account_id", v || null)}
-          required
-          options={[
-            { value: "", label: "— Select —" },
-            ...(accounts.data?.map((a) => ({
+          onChange={(v) => handleSelect("payment_account_id", "account", v)}
+          options={
+            accounts.data?.map((a) => ({
               value: a.id,
               label: `${a.name}${a.masked_number ? ` (${a.masked_number})` : ""}`,
-            })) ?? []),
-          ]}
+            })) ?? []
+          }
+          addNewLabel="+ Add new account…"
+          placeholder="Select account"
         />
-        <Select
+        <SmartSelect
           label="Trip (optional)"
           value={values.trip_id ?? ""}
-          onChange={(v) => set("trip_id", v || null)}
-          options={[
-            { value: "", label: "— None —" },
-            ...(trips.data?.map((t) => ({ value: t.id, label: t.name })) ?? []),
-          ]}
+          onChange={(v) => handleSelect("trip_id", "trip", v)}
+          options={trips.data?.map((t) => ({ value: t.id, label: t.name })) ?? []}
+          addNewLabel="+ Add new trip…"
+          placeholder="— None —"
+          allowNone
         />
         <div className="flex items-center gap-2 pt-7">
           <Checkbox
@@ -354,38 +381,268 @@ export function ExpenseForm({
           </Button>
         )}
       </div>
+
+      {familyId && (
+        <QuickAddDialog
+          kind={quickAdd}
+          familyId={familyId}
+          onClose={() => setQuickAdd(null)}
+          onCreated={(kind, id) => {
+            setQuickAdd(null);
+            if (kind === "category") set("category_id", id);
+            if (kind === "member") set("paid_by", id);
+            if (kind === "account") set("payment_account_id", id);
+            if (kind === "trip") set("trip_id", id);
+          }}
+        />
+      )}
     </form>
   );
 }
 
-function Select({
+function SmartSelect({
   label,
   value,
   onChange,
   options,
-  required,
+  placeholder,
+  addNewLabel,
+  allowNone,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
-  required?: boolean;
+  placeholder?: string;
+  addNewLabel?: string;
+  allowNone?: boolean;
 }) {
   return (
     <div className="space-y-1.5">
       <Label>{label}</Label>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required={required}
-        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-      >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
+      <UiSelect value={value || undefined} onValueChange={onChange}>
+        <SelectTrigger className="bg-transparent">
+          <SelectValue placeholder={placeholder ?? "Select"} />
+        </SelectTrigger>
+        <SelectContent>
+          {allowNone && <SelectItem value="__none__">— None —</SelectItem>}
+          {options.map((o) => (
+            <SelectItem key={o.value} value={o.value}>
+              {o.label}
+            </SelectItem>
+          ))}
+          {addNewLabel && (
+            <SelectItem value={ADD_NEW} className="text-primary font-medium">
+              {addNewLabel}
+            </SelectItem>
+          )}
+        </SelectContent>
+      </UiSelect>
     </div>
+  );
+}
+
+function QuickAddDialog({
+  kind,
+  familyId,
+  onClose,
+  onCreated,
+}: {
+  kind: QuickAddKind;
+  familyId: string;
+  onClose: () => void;
+  onCreated: (kind: Exclude<QuickAddKind, null>, id: string) => void;
+}) {
+  const qc = useQueryClient();
+  const [name, setName] = useState("");
+  const [beneficiary, setBeneficiary] = useState("");
+  const [last4, setLast4] = useState("");
+  const [accountType, setAccountType] = useState<"bank" | "credit_card">("bank");
+  const [startDate, setStartDate] = useState<string>(todayISO());
+  const [endDate, setEndDate] = useState<string>("");
+
+  useEffect(() => {
+    if (kind) {
+      setName("");
+      setBeneficiary("");
+      setLast4("");
+      setAccountType("bank");
+      setStartDate(todayISO());
+      setEndDate("");
+    }
+  }, [kind]);
+
+  const create = useMutation({
+    mutationFn: async () => {
+      if (!kind) throw new Error("No kind");
+      const trimmed = name.trim();
+      if (!trimmed) throw new Error("Name is required");
+
+      if (kind === "category") {
+        const { data, error } = await supabase
+          .from("categories")
+          .insert({ family_id: familyId, name: trimmed })
+          .select("id")
+          .single();
+        if (error) throw error;
+        return { kind, id: data.id as string };
+      }
+      if (kind === "member") {
+        const { data, error } = await supabase
+          .from("family_members")
+          .insert({ family_id: familyId, display_name: trimmed, active: true })
+          .select("id")
+          .single();
+        if (error) throw error;
+        return { kind, id: data.id as string };
+      }
+      if (kind === "account") {
+        if (!beneficiary.trim()) throw new Error("Beneficiary name is required");
+        if (!/^\d{4}$/.test(last4)) throw new Error("Enter exactly 4 digits");
+        const { data, error } = await supabase
+          .from("payment_accounts")
+          .insert({
+            family_id: familyId,
+            name: trimmed,
+            type: accountType,
+            beneficiary_name: beneficiary.trim(),
+            masked_number: last4,
+            active: true,
+          })
+          .select("id")
+          .single();
+        if (error) throw error;
+        return { kind, id: data.id as string };
+      }
+      if (kind === "trip") {
+        if (!startDate) throw new Error("Start date is required");
+        const { data, error } = await supabase
+          .from("trips")
+          .insert({
+            family_id: familyId,
+            name: trimmed,
+            start_date: startDate,
+            end_date: endDate || null,
+            active: true,
+          })
+          .select("id")
+          .single();
+        if (error) throw error;
+        return { kind, id: data.id as string };
+      }
+      throw new Error("Unknown kind");
+    },
+    onSuccess: ({ kind, id }) => {
+      const invalidations: Record<Exclude<QuickAddKind, null>, string> = {
+        category: "categories",
+        member: "members",
+        account: "payment_accounts",
+        trip: "trips",
+      };
+      qc.invalidateQueries({ queryKey: [invalidations[kind]] });
+      if (kind === "account") qc.invalidateQueries({ queryKey: ["payment_accounts_all"] });
+      toast.success("Added");
+      onCreated(kind, id);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const titles: Record<Exclude<QuickAddKind, null>, string> = {
+    category: "Add Category",
+    member: "Add Member",
+    account: "Add Payment Account",
+    trip: "Add Trip",
+  };
+
+  return (
+    <Dialog open={!!kind} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{kind ? titles[kind] : ""}</DialogTitle>
+          <DialogDescription>
+            Create a new entry — it will be selected automatically.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            create.mutate();
+          }}
+          className="space-y-3"
+        >
+          {kind === "account" && (
+            <div className="space-y-1.5">
+              <Label>Account type *</Label>
+              <UiSelect value={accountType} onValueChange={(v) => setAccountType(v as "bank" | "credit_card")}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bank">Bank Account</SelectItem>
+                  <SelectItem value="credit_card">Credit Card</SelectItem>
+                </SelectContent>
+              </UiSelect>
+            </div>
+          )}
+
+          {kind === "account" && (
+            <div className="space-y-1.5">
+              <Label htmlFor="qa-benef">Beneficiary Name *</Label>
+              <Input id="qa-benef" value={beneficiary} onChange={(e) => setBeneficiary(e.target.value)} maxLength={120} required />
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <Label htmlFor="qa-name">
+              {kind === "account" ? "Bank / Card Name *" : "Name *"}
+            </Label>
+            <Input
+              id="qa-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              maxLength={120}
+              autoFocus
+              required
+            />
+          </div>
+
+          {kind === "account" && (
+            <div className="space-y-1.5">
+              <Label htmlFor="qa-last4">Last 4 digits *</Label>
+              <Input
+                id="qa-last4"
+                inputMode="numeric"
+                maxLength={4}
+                value={last4}
+                onChange={(e) => setLast4(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                required
+              />
+            </div>
+          )}
+
+          {kind === "trip" && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="qa-start">Start date *</Label>
+                <Input id="qa-start" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="qa-end">End date</Label>
+                <Input id="qa-end" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={create.isPending}>
+              {create.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              <Plus className="h-4 w-4 mr-1" /> Add
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
