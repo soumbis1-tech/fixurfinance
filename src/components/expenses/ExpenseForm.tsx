@@ -143,7 +143,7 @@ export function ExpenseForm({
           : "not_applicable") as "not_applicable" | "pending" | "reimbursed",
         source: "manual" as const,
         receipt_path,
-        created_by: user?.id ?? null,
+        created_by: user!.id,
       };
       if (initial?.id) {
         const { error } = await supabase.from("expenses").update(payload).eq("id", initial.id);
