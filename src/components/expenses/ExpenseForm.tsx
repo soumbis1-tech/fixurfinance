@@ -208,6 +208,10 @@ export function ExpenseForm({
     setValues((s) => ({ ...s, [k]: v }));
 
   function handleSelect(field: keyof ExpenseFormValues, kind: Exclude<QuickAddKind, null>, v: string) {
+    if (v === "__none__") {
+      set(field, null as never);
+      return;
+    }
     if (v === ADD_NEW) {
       setQuickAdd(kind);
       return;
