@@ -382,7 +382,7 @@ export type Database = {
           category_id: string | null
           comments: string | null
           created_at: string
-          created_by: string | null
+          created_by: string
           date: string
           dedupe_hash: string | null
           description: string
@@ -404,7 +404,7 @@ export type Database = {
           category_id?: string | null
           comments?: string | null
           created_at?: string
-          created_by?: string | null
+          created_by: string
           date: string
           dedupe_hash?: string | null
           description: string
@@ -426,7 +426,7 @@ export type Database = {
           category_id?: string | null
           comments?: string | null
           created_at?: string
-          created_by?: string | null
+          created_by?: string
           date?: string
           dedupe_hash?: string | null
           description?: string
