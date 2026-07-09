@@ -216,6 +216,7 @@ function ExpensesPage() {
         ...rest,
         family_id: familyId!,
         source: "manual",
+        created_by: user!.id,
       });
       if (error) throw error;
     },
