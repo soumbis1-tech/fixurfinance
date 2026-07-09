@@ -425,7 +425,7 @@ function SmartSelect({
           <SelectValue placeholder={placeholder ?? "Select"} />
         </SelectTrigger>
         <SelectContent>
-          {allowNone && <SelectItem value="__none__" onSelect={() => onChange("")}>— None —</SelectItem>}
+          {allowNone && <SelectItem value="__none__">— None —</SelectItem>}
           {options.map((o) => (
             <SelectItem key={o.value} value={o.value}>
               {o.label}
