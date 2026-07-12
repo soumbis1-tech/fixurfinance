@@ -167,6 +167,22 @@ export function ExpenseForm({
         if (error) throw error;
         return initial.id;
       } else {
+        // Duplicate guard: same family + date + amount + description (case-insensitive)
+        const { data: dup } = await supabase
+          .from("expenses")
+          .select("id")
+          .eq("family_id", familyId)
+          .eq("date", parsed.date)
+          .eq("amount", parsed.amount)
+          .ilike("description", parsed.description.trim())
+          .limit(1)
+          .maybeSingle();
+        if (dup) {
+          const ok = typeof window !== "undefined" && window.confirm(
+            `A matching expense already exists on ${parsed.date} for "${parsed.description}" (${parsed.amount}).\n\nAdd it anyway?`,
+          );
+          if (!ok) throw new Error("Duplicate expense — not saved");
+        }
         const { data, error } = await supabase
           .from("expenses")
           .insert(payload)
