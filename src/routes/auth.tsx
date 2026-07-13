@@ -109,29 +109,31 @@ function AuthPage() {
   return (
     <div className="min-h-screen w-full bg-background text-foreground lg:grid lg:grid-cols-[1.05fr_1fr]">
       {/* ============ HERO / BRAND SIDE ============ */}
-      <aside className="relative hidden lg:flex flex-col justify-between overflow-hidden p-10 xl:p-14 text-white">
-        {/* layered gradient background */}
-        <div
-          className="absolute inset-0 -z-10"
-          style={{
-            background:
-              "radial-gradient(1200px 600px at 15% 10%, oklch(0.55 0.18 155 / 0.55), transparent 60%)," +
-              "radial-gradient(900px 500px at 90% 90%, oklch(0.50 0.20 250 / 0.55), transparent 55%)," +
-              "linear-gradient(160deg, oklch(0.18 0.03 250) 0%, oklch(0.14 0.04 200) 55%, oklch(0.12 0.05 160) 100%)",
-          }}
-        />
+      <aside
+        className="relative hidden lg:flex flex-col justify-between overflow-hidden p-10 xl:p-14 text-white"
+        style={{
+          backgroundColor: "#07131f",
+          backgroundImage:
+            "radial-gradient(1100px 620px at 12% 8%, rgba(16,185,129,0.38), transparent 62%)," +
+            "radial-gradient(900px 520px at 92% 92%, rgba(79,70,229,0.42), transparent 60%)," +
+            "radial-gradient(700px 400px at 80% 15%, rgba(20,184,166,0.22), transparent 65%)," +
+            "linear-gradient(160deg, #07131f 0%, #0a1a2b 55%, #0b1f2e 100%)",
+        }}
+      >
         {/* subtle grid overlay */}
         <div
-          className="absolute inset-0 -z-10 opacity-[0.07]"
+          className="pointer-events-none absolute inset-0 opacity-[0.08]"
           style={{
             backgroundImage:
-              "linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)",
+              "linear-gradient(to right, rgba(255,255,255,0.9) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.9) 1px, transparent 1px)",
             backgroundSize: "44px 44px",
+            maskImage:
+              "radial-gradient(ellipse at center, black 55%, transparent 85%)",
           }}
         />
         {/* animated glow blobs */}
-        <div className="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-emerald-400/20 blur-3xl animate-pulse" />
-        <div className="pointer-events-none absolute -bottom-32 -right-16 h-[28rem] w-[28rem] rounded-full bg-indigo-500/20 blur-3xl animate-pulse [animation-delay:1.2s]" />
+        <div className="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-emerald-400/25 blur-3xl animate-pulse" />
+        <div className="pointer-events-none absolute -bottom-32 -right-16 h-[28rem] w-[28rem] rounded-full bg-indigo-500/25 blur-3xl animate-pulse [animation-delay:1.2s]" />
 
         {/* Brand */}
         <div className="relative flex items-center gap-3">
