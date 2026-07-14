@@ -12,6 +12,7 @@ import {
   Target,
   Settings,
   Wallet,
+  Handshake,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
