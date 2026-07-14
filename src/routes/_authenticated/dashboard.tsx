@@ -345,9 +345,34 @@ function Dashboard() {
           <h1 className="text-xl sm:text-2xl font-semibold truncate">Dashboard</h1>
           <p className="text-sm text-muted-foreground truncate">
             {formatDate(today)} · {activeFamily?.name}
+            {lastSettlement.data?.completed_at && (
+              <>
+                {" · "}
+                <span className="inline-flex items-center gap-1">
+                  <Handshake className="h-3.5 w-3.5" />
+                  Last settlement {formatDate(lastSettlement.data.completed_at)}
+                </span>
+              </>
+            )}
           </p>
         </div>
       </div>
+
+      {pendingSettlement.data && (
+        <Link
+          to="/settlement"
+          className="flex items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 hover:bg-amber-500/15 transition-colors"
+        >
+          <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <div className="font-medium">Settlement awaiting your approval</div>
+            <div className="text-muted-foreground">
+              {pendingSettlement.data.initiator_name} started a settlement on{" "}
+              {formatDate(pendingSettlement.data.created_at)}. Review and approve →
+            </div>
+          </div>
+        </Link>
+      )}
 
       <SetupChecklist familyId={familyId ?? null} />
 
