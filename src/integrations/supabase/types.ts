@@ -376,6 +376,95 @@ export type Database = {
           },
         ]
       }
+      expense_settlement_approvals: {
+        Row: {
+          approved_at: string
+          family_id: string
+          id: string
+          settlement_id: string
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string
+          family_id: string
+          id?: string
+          settlement_id: string
+          user_id: string
+        }
+        Update: {
+          approved_at?: string
+          family_id?: string
+          id?: string
+          settlement_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_settlement_approvals_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_settlement_approvals_settlement_id_fkey"
+            columns: ["settlement_id"]
+            isOneToOne: false
+            referencedRelation: "expense_settlements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expense_settlements: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          family_id: string
+          id: string
+          initiated_by: string
+          notes: string | null
+          period_end: string
+          period_start: string
+          status: string
+          totals: Json | null
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          family_id: string
+          id?: string
+          initiated_by: string
+          notes?: string | null
+          period_end?: string
+          period_start: string
+          status?: string
+          totals?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          family_id?: string
+          id?: string
+          initiated_by?: string
+          notes?: string | null
+          period_end?: string
+          period_start?: string
+          status?: string
+          totals?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_settlements_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expenses: {
         Row: {
           amount: number
@@ -1189,6 +1278,18 @@ export type Database = {
     }
     Functions: {
       accept_family_invitation: { Args: { _token: string }; Returns: string }
+      approve_expense_settlement: {
+        Args: { _settlement_id: string }
+        Returns: {
+          approvals_count: number
+          required_count: number
+          status: string
+        }[]
+      }
+      cancel_expense_settlement: {
+        Args: { _settlement_id: string }
+        Returns: undefined
+      }
       category_summary: {
         Args: { _end: string; _family_id: string; _start: string }
         Returns: {
@@ -1246,6 +1347,10 @@ export type Database = {
       }
       seed_family_defaults: { Args: { _family_id: string }; Returns: undefined }
       seed_family_sample_data: { Args: { _family_id: string }; Returns: number }
+      start_expense_settlement: {
+        Args: { _family_id: string }
+        Returns: string
+      }
     }
     Enums: {
       credit_card_status: "unpaid" | "paid" | "reimbursed" | "disputed"
