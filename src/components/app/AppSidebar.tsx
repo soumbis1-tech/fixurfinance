@@ -28,6 +28,7 @@ export const NAV_ITEMS = [
   { to: "/accounts", label: "Payment Accounts", icon: Wallet },
   { to: "/reports", label: "Reports", icon: BarChart3 },
   { to: "/budgets", label: "Budgets", icon: Target },
+  { to: "/settlement", label: "Expense Settlement", icon: Handshake },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
