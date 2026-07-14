@@ -284,6 +284,47 @@ function Dashboard() {
     },
   });
 
+  const lastSettlement = useQuery({
+    enabled: !!familyId,
+    queryKey: ["dash_last_settlement", familyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("expense_settlements")
+        .select("completed_at")
+        .eq("family_id", familyId!)
+        .eq("status", "completed")
+        .order("completed_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const pendingSettlement = useQuery({
+    enabled: !!familyId,
+    queryKey: ["dash_pending_settlement", familyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("expense_settlements")
+        .select("id, created_at, initiated_by")
+        .eq("family_id", familyId!)
+        .eq("status", "pending")
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", data.initiated_by)
+        .maybeSingle();
+      return {
+        ...data,
+        initiator_name: prof?.full_name || prof?.email || "A family member",
+      };
+    },
+  });
+
   const currency = activeFamily?.currency ?? "INR";
   const COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "var(--chart-6)"];
 
