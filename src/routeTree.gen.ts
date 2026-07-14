@@ -15,6 +15,7 @@ import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTripsRouteImport } from './routes/_authenticated/trips'
+import { Route as AuthenticatedSettlementRouteImport } from './routes/_authenticated/settlement'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedRecurringRouteImport } from './routes/_authenticated/recurring'
@@ -57,6 +58,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthenticatedTripsRoute = AuthenticatedTripsRouteImport.update({
   id: '/trips',
   path: '/trips',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSettlementRoute = AuthenticatedSettlementRouteImport.update({
+  id: '/settlement',
+  path: '/settlement',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
@@ -150,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/recurring': typeof AuthenticatedRecurringRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/settlement': typeof AuthenticatedSettlementRoute
   '/trips': typeof AuthenticatedTripsRoute
   '/expenses/new': typeof AuthenticatedExpensesNewRoute
   '/expenses/': typeof AuthenticatedExpensesIndexRoute
@@ -171,6 +178,7 @@ export interface FileRoutesByTo {
   '/recurring': typeof AuthenticatedRecurringRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/settlement': typeof AuthenticatedSettlementRoute
   '/trips': typeof AuthenticatedTripsRoute
   '/expenses/new': typeof AuthenticatedExpensesNewRoute
   '/expenses': typeof AuthenticatedExpensesIndexRoute
@@ -194,6 +202,7 @@ export interface FileRoutesById {
   '/_authenticated/recurring': typeof AuthenticatedRecurringRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/settlement': typeof AuthenticatedSettlementRoute
   '/_authenticated/trips': typeof AuthenticatedTripsRoute
   '/_authenticated/expenses/new': typeof AuthenticatedExpensesNewRoute
   '/_authenticated/expenses/': typeof AuthenticatedExpensesIndexRoute
@@ -217,6 +226,7 @@ export interface FileRouteTypes {
     | '/recurring'
     | '/reports'
     | '/settings'
+    | '/settlement'
     | '/trips'
     | '/expenses/new'
     | '/expenses/'
@@ -238,6 +248,7 @@ export interface FileRouteTypes {
     | '/recurring'
     | '/reports'
     | '/settings'
+    | '/settlement'
     | '/trips'
     | '/expenses/new'
     | '/expenses'
@@ -260,6 +271,7 @@ export interface FileRouteTypes {
     | '/_authenticated/recurring'
     | '/_authenticated/reports'
     | '/_authenticated/settings'
+    | '/_authenticated/settlement'
     | '/_authenticated/trips'
     | '/_authenticated/expenses/new'
     | '/_authenticated/expenses/'
@@ -318,6 +330,13 @@ declare module '@tanstack/react-router' {
       path: '/trips'
       fullPath: '/trips'
       preLoaderRoute: typeof AuthenticatedTripsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settlement': {
+      id: '/_authenticated/settlement'
+      path: '/settlement'
+      fullPath: '/settlement'
+      preLoaderRoute: typeof AuthenticatedSettlementRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings': {
@@ -432,6 +451,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRecurringRoute: typeof AuthenticatedRecurringRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedSettlementRoute: typeof AuthenticatedSettlementRoute
   AuthenticatedTripsRoute: typeof AuthenticatedTripsRoute
   AuthenticatedExpensesNewRoute: typeof AuthenticatedExpensesNewRoute
   AuthenticatedExpensesIndexRoute: typeof AuthenticatedExpensesIndexRoute
@@ -449,6 +469,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRecurringRoute: AuthenticatedRecurringRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedSettlementRoute: AuthenticatedSettlementRoute,
   AuthenticatedTripsRoute: AuthenticatedTripsRoute,
   AuthenticatedExpensesNewRoute: AuthenticatedExpensesNewRoute,
   AuthenticatedExpensesIndexRoute: AuthenticatedExpensesIndexRoute,
