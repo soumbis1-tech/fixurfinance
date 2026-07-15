@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { formatMoney, formatDate } from "@/lib/format";
 import { Handshake, CheckCircle2, Clock, AlertCircle, Loader2, X } from "lucide-react";
+import { currentCycleStart } from "@/lib/settlement-cycle";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/settlement")({
@@ -114,9 +115,15 @@ function SettlementPage() {
     },
   });
 
+  // Settlement cycles run twice a month (1st–15th, 16th–end). The visible
+  // period starts at the later of: the current cycle start, and the last
+  // completed settlement's timestamp (so a mid-cycle settlement resets it).
   const periodStart = useMemo(() => {
-    if (lastCompleted.data?.completed_at) return lastCompleted.data.completed_at;
-    return family.data?.created_at ?? null;
+    const cycleStart = currentCycleStart().toISOString();
+    const candidates = [cycleStart];
+    if (lastCompleted.data?.completed_at) candidates.push(lastCompleted.data.completed_at);
+    else if (family.data?.created_at) candidates.push(family.data.created_at);
+    return candidates.sort().pop() ?? null;
   }, [lastCompleted.data, family.data]);
 
   // Expenses in the current settlement window: exclude reimbursable, trip-linked, and personal expense

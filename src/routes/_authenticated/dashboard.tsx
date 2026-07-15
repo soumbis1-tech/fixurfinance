@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveFamily } from "@/hooks/use-families";
@@ -20,6 +20,9 @@ import {
 import { Wallet, TrendingUp, Calendar, Receipt, PiggyBank, RefreshCw, Loader2, User, Handshake, AlertCircle } from "lucide-react";
 import { SetupChecklist } from "@/components/app/SetupChecklist";
 import { Link } from "@tanstack/react-router";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { currentCycleSettlementDate, daysUntil } from "@/lib/settlement-cycle";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -328,6 +331,25 @@ function Dashboard() {
   const currency = activeFamily?.currency ?? "INR";
   const COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "var(--chart-6)"];
 
+  // Settlement reminder: open on every login within 3 days of the settlement
+  // date (16th of the month, or the 1st for the 16th–end cycle). Dismissed
+  // per-session so it doesn't nag after the user acknowledges it.
+  const nextSettlementDate = currentCycleSettlementDate(today);
+  const daysToSettlement = daysUntil(nextSettlementDate, today);
+  const reminderKey = `settlement_reminder_${nextSettlementDate.toISOString().slice(0, 10)}`;
+  const [reminderOpen, setReminderOpen] = useState(false);
+  useEffect(() => {
+    if (!familyId) return;
+    if (daysToSettlement < 0 || daysToSettlement > 3) return;
+    if (typeof window === "undefined") return;
+    if (sessionStorage.getItem(reminderKey)) return;
+    setReminderOpen(true);
+  }, [familyId, daysToSettlement, reminderKey]);
+  const dismissReminder = () => {
+    if (typeof window !== "undefined") sessionStorage.setItem(reminderKey, "1");
+    setReminderOpen(false);
+  };
+
   if (famLoading) {
     return (
       <div className="flex items-center justify-center py-16 text-muted-foreground">
@@ -373,6 +395,29 @@ function Dashboard() {
           </div>
         </Link>
       )}
+
+      <Dialog open={reminderOpen} onOpenChange={(o) => (o ? setReminderOpen(true) : dismissReminder())}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Handshake className="h-5 w-5 text-amber-600" />
+              Settlement reminder
+            </DialogTitle>
+            <DialogDescription>
+              {daysToSettlement === 0
+                ? `Today (${formatDate(nextSettlementDate)}) is a settlement day.`
+                : `Only ${daysToSettlement} day${daysToSettlement === 1 ? "" : "s"} left until the next settlement on ${formatDate(nextSettlementDate)}.`}
+              {" "}Please review the family expenses and initiate or approve the settlement so balances stay up to date.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={dismissReminder}>Remind me later</Button>
+            <Button asChild onClick={dismissReminder}>
+              <Link to="/settlement">Go to settlement</Link>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <SetupChecklist familyId={familyId ?? null} />
 
