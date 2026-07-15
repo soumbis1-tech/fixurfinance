@@ -331,6 +331,25 @@ function Dashboard() {
   const currency = activeFamily?.currency ?? "INR";
   const COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "var(--chart-6)"];
 
+  // Settlement reminder: open on every login within 3 days of the settlement
+  // date (16th of the month, or the 1st for the 16th–end cycle). Dismissed
+  // per-session so it doesn't nag after the user acknowledges it.
+  const nextSettlementDate = currentCycleSettlementDate(today);
+  const daysToSettlement = daysUntil(nextSettlementDate, today);
+  const reminderKey = `settlement_reminder_${nextSettlementDate.toISOString().slice(0, 10)}`;
+  const [reminderOpen, setReminderOpen] = useState(false);
+  useEffect(() => {
+    if (!familyId) return;
+    if (daysToSettlement < 0 || daysToSettlement > 3) return;
+    if (typeof window === "undefined") return;
+    if (sessionStorage.getItem(reminderKey)) return;
+    setReminderOpen(true);
+  }, [familyId, daysToSettlement, reminderKey]);
+  const dismissReminder = () => {
+    if (typeof window !== "undefined") sessionStorage.setItem(reminderKey, "1");
+    setReminderOpen(false);
+  };
+
   if (famLoading) {
     return (
       <div className="flex items-center justify-center py-16 text-muted-foreground">
