@@ -20,6 +20,9 @@ import {
 import { Wallet, TrendingUp, Calendar, Receipt, PiggyBank, RefreshCw, Loader2, User, Handshake, AlertCircle } from "lucide-react";
 import { SetupChecklist } from "@/components/app/SetupChecklist";
 import { Link } from "@tanstack/react-router";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { currentCycleSettlementDate, daysUntil } from "@/lib/settlement-cycle";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
