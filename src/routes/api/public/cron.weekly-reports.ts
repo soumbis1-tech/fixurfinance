@@ -1,22 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 // POST /api/public/cron/weekly-reports — invoked by pg_cron (scheduled) or
-// any external scheduler. Authentication accepts either:
-//   - header `apikey: <SUPABASE_PUBLISHABLE_KEY>` (matches pg_cron pattern), OR
-//   - header `x-cron-secret: <CRON_SECRET>` (legacy shared secret).
-// On match, iterates all enabled weekly_report_settings rows and sends.
+// any external scheduler. Authentication requires the shared secret header:
+//   - header `x-cron-secret: <CRON_SECRET>`
+// The public anon/publishable key is NOT accepted — it would let anyone
+// trigger the job. On match, iterates all enabled weekly_report_settings rows.
 
 export const Route = createFileRoute("/api/public/cron/weekly-reports")({
   server: {
     handlers: {
       POST: async ({ request }) => {
         const cronSecret = process.env.CRON_SECRET;
-        const anonKey = process.env.SUPABASE_PUBLISHABLE_KEY;
         const providedSecret = request.headers.get("x-cron-secret");
-        const providedApiKey = request.headers.get("apikey");
-        const secretOk = !!cronSecret && providedSecret === cronSecret;
-        const apiKeyOk = !!anonKey && providedApiKey === anonKey;
-        if (!secretOk && !apiKeyOk) {
+        if (!cronSecret || !providedSecret || providedSecret !== cronSecret) {
           return new Response("Unauthorized", { status: 401 });
         }
 
