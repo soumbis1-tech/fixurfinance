@@ -396,6 +396,29 @@ function Dashboard() {
         </Link>
       )}
 
+      <Dialog open={reminderOpen} onOpenChange={(o) => (o ? setReminderOpen(true) : dismissReminder())}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Handshake className="h-5 w-5 text-amber-600" />
+              Settlement reminder
+            </DialogTitle>
+            <DialogDescription>
+              {daysToSettlement === 0
+                ? `Today (${formatDate(nextSettlementDate)}) is a settlement day.`
+                : `Only ${daysToSettlement} day${daysToSettlement === 1 ? "" : "s"} left until the next settlement on ${formatDate(nextSettlementDate)}.`}
+              {" "}Please review the family expenses and initiate or approve the settlement so balances stay up to date.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={dismissReminder}>Remind me later</Button>
+            <Button asChild onClick={dismissReminder}>
+              <Link to="/settlement">Go to settlement</Link>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <SetupChecklist familyId={familyId ?? null} />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
