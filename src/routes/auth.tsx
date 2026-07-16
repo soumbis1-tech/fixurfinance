@@ -20,7 +20,18 @@ import { toast } from "sonner";
 
 const PENDING_KEY = "fet-pending-invite-token";
 
-function postAuthDestination(): { to: string; search?: Record<string, string> } {
+function safeNextPath(next: string | undefined | null): string | null {
+  if (!next) return null;
+  // Only allow same-origin relative paths (must start with "/" and not "//").
+  if (!next.startsWith("/") || next.startsWith("//")) return null;
+  return next;
+}
+
+function postAuthDestination(nextParam?: string | null):
+  | { href: string }
+  | { to: string; search?: Record<string, string> } {
+  const safe = safeNextPath(nextParam);
+  if (safe) return { href: safe };
   if (typeof window === "undefined") return { to: "/dashboard" };
   const token = localStorage.getItem(PENDING_KEY);
   if (token) return { to: "/accept-invite", search: { token } };
@@ -29,10 +40,14 @@ function postAuthDestination(): { to: string; search?: Record<string, string> } 
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  beforeLoad: async () => {
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" ? s.next : undefined,
+  }),
+  beforeLoad: async ({ search }) => {
     const { data } = await supabase.auth.getSession();
     if (data.session) {
-      const dest = postAuthDestination();
+      const dest = postAuthDestination(search.next);
+      if ("href" in dest) throw redirect({ href: dest.href } as never);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       throw redirect({ to: dest.to, search: dest.search as any });
     }
