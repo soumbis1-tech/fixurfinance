@@ -63,10 +63,21 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+
+  function goToDest() {
+    const dest = postAuthDestination(next);
+    if ("href" in dest) {
+      window.location.href = dest.href;
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    navigate({ to: dest.to, search: dest.search as any });
+  }
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
@@ -74,19 +85,21 @@ function AuthPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) return toast.error(error.message);
-    const dest = postAuthDestination();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    navigate({ to: dest.to, search: dest.search as any });
+    goToDest();
   }
 
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+    const safe = safeNextPath(next);
+    const emailRedirectTo = safe
+      ? `${window.location.origin}/auth?next=${encodeURIComponent(safe)}`
+      : window.location.origin;
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo,
         data: { full_name: name },
       },
     });
@@ -97,8 +110,12 @@ function AuthPage() {
 
   async function handleGoogle() {
     setLoading(true);
+    const safe = safeNextPath(next);
+    const redirectUri = safe
+      ? `${window.location.origin}/auth?next=${encodeURIComponent(safe)}`
+      : window.location.origin;
     const result = (await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: redirectUri,
     })) as { error?: unknown; redirected?: boolean };
     if (result.error) {
       setLoading(false);
@@ -107,9 +124,7 @@ function AuthPage() {
       return;
     }
     if (result.redirected) return;
-    const dest = postAuthDestination();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    navigate({ to: dest.to, search: dest.search as any });
+    goToDest();
   }
 
   async function handleReset() {
