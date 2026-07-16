@@ -1,0 +1,211 @@
+{
+  "version": 1,
+  "sdk_version": "0.22.2",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://lodhlfhwembxbaqsxnjo.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "family-expense-tracker-mcp",
+      "version": "0.1.0",
+      "title": "Family Expense Tracker"
+    },
+    "tools": [
+      {
+        "name": "list_recent_expenses",
+        "title": "List recent expenses",
+        "description": "List the most recent expenses in the signed-in user's family. Optionally filter by number of days back and result limit.",
+        "annotations": {
+          "readOnlyHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "days": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 365,
+              "default": 30,
+              "description": "Number of days back to include."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "description": "Max rows to return."
+            },
+            "family_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Family ID (defaults to your default family)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_month_summary",
+        "title": "Get month summary",
+        "description": "Return total, expense, investment, and pending-reimbursable amounts for the family for a given year and month.",
+        "annotations": {
+          "readOnlyHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "year": {
+              "type": "integer",
+              "minimum": 2000,
+              "maximum": 2100,
+              "description": "4-digit year, e.g. 2026."
+            },
+            "month": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12,
+              "description": "Month 1-12."
+            },
+            "family_id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "year",
+            "month"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_categories",
+        "title": "List categories",
+        "description": "List all expense categories for the family.",
+        "annotations": {
+          "readOnlyHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "family_id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "add_expense",
+        "title": "Add an expense",
+        "description": "Add an expense to the family. If category_id or paid_by are omitted, sensible defaults are chosen from the family (Miscellaneous / the caller's linked member).",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string",
+              "description": "Expense date in YYYY-MM-DD."
+            },
+            "amount": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Amount in the family currency."
+            },
+            "description": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Short description of the expense."
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "expense",
+                "investment"
+              ],
+              "default": "expense"
+            },
+            "reimbursable": {
+              "type": "boolean",
+              "default": false
+            },
+            "comments": {
+              "type": "string"
+            },
+            "category_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "paid_by": {
+              "type": "string",
+              "format": "uuid",
+              "description": "family_members.id"
+            },
+            "payment_account_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "family_id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "date",
+            "amount",
+            "description"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_pending_reimbursements",
+        "title": "List pending reimbursements",
+        "description": "List expenses marked reimbursable whose reimbursement is still pending.",
+        "annotations": {
+          "readOnlyHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "family_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
