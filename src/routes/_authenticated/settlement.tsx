@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { formatMoney, formatDate } from "@/lib/format";
 import { Handshake, CheckCircle2, Clock, AlertCircle, Loader2, X } from "lucide-react";
-import { currentCycleStart } from "@/lib/settlement-cycle";
+import { currentCycleStart, settlementHistoryCycleStart } from "@/lib/settlement-cycle";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/settlement")({
@@ -420,13 +420,16 @@ function SettlementPage() {
                   ? (h.totals as Array<{ name: string; total: number; count: number }>)
                   : [];
                 const grand = rows.reduce((s, r) => s + Number(r.total || 0), 0);
+                const displayStart = settlementHistoryCycleStart(
+                  h.completed_at ?? h.period_end ?? h.created_at,
+                );
                 return (
                   <li key={h.id} className="p-4 text-sm space-y-2">
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <div className="font-medium capitalize">{h.status}</div>
                         <div className="text-xs text-muted-foreground">
-                          {formatDate(h.period_start)} → {formatDate(h.period_end)}
+                          {formatDate(displayStart.toISOString())} → {formatDate(h.period_end)}
                         </div>
                       </div>
                       <div className="text-xs text-muted-foreground text-right">

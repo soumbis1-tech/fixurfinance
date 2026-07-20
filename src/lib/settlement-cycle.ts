@@ -8,6 +8,13 @@ export function currentCycleStart(today: Date = new Date()): Date {
   return new Date(d.getFullYear(), d.getMonth(), 16);
 }
 
+export function settlementHistoryCycleStart(settledAt: string | Date): Date {
+  const date = settledAt instanceof Date ? settledAt : new Date(settledAt);
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  if (d.getDate() <= 16) return new Date(d.getFullYear(), d.getMonth(), 1);
+  return new Date(d.getFullYear(), d.getMonth(), 16);
+}
+
 /** Date the current cycle should be settled on (16th or 1st of next month). */
 export function currentCycleSettlementDate(today: Date = new Date()): Date {
   const d = new Date(today.getFullYear(), today.getMonth(), today.getDate());
