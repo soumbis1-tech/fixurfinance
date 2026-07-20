@@ -241,6 +241,58 @@ function SettlementPage() {
     },
   });
 
+  const historyWindows = useMemo(() => {
+    return (history.data ?? []).map((h) => {
+      const end = h.period_end ?? h.completed_at ?? h.created_at;
+      const start = settlementHistoryCycleStart(h.completed_at ?? end).toISOString().slice(0, 10);
+      return { id: h.id, start, end: new Date(end).toISOString().slice(0, 10) };
+    });
+  }, [history.data]);
+
+  const historyExpenses = useQuery({
+    enabled: showHistory && !!familyId && historyWindows.length > 0,
+    queryKey: ["settlement_history_expenses", familyId, historyWindows],
+    queryFn: async () => {
+      const starts = historyWindows.map((w) => w.start).sort();
+      const ends = historyWindows.map((w) => w.end).sort();
+      const { data, error } = await supabase
+        .from("expenses")
+        .select("id, date, amount, comments, paid_by, reimbursable, trip_id, type")
+        .eq("family_id", familyId!)
+        .eq("type", "expense")
+        .eq("reimbursable", false)
+        .is("trip_id", null)
+        .gte("date", starts[0])
+        .lte("date", ends[ends.length - 1]);
+      if (error) throw error;
+      return (data ?? []).filter(
+        (r) => !(r.comments ?? "").toLowerCase().includes("personal expense"),
+      );
+    },
+  });
+
+  const historyTotals = useMemo(() => {
+    const nameById = new Map((members.data ?? []).map((m) => [m.id, m.display_name]));
+    const totals = new Map<string, Array<{ name: string; total: number; count: number }>>();
+    for (const window of historyWindows) {
+      const memberMap = new Map<string, { name: string; total: number; count: number }>();
+      for (const expense of historyExpenses.data ?? []) {
+        if (expense.date < window.start || expense.date > window.end) continue;
+        const key = expense.paid_by ?? "unassigned";
+        const current = memberMap.get(key) ?? {
+          name: (expense.paid_by && nameById.get(expense.paid_by)) || "Unassigned",
+          total: 0,
+          count: 0,
+        };
+        current.total += Number(expense.amount);
+        current.count += 1;
+        memberMap.set(key, current);
+      }
+      totals.set(window.id, Array.from(memberMap.values()).sort((a, b) => b.total - a.total));
+    }
+    return totals;
+  }, [historyExpenses.data, historyWindows, members.data]);
+
   const approvedUserIds = new Set((approvals.data ?? []).map((a) => a.user_id));
   const allUsers = familyUsers.data ?? [];
   const pendingUsers = allUsers.filter((u) => !approvedUserIds.has(u.user_id));
@@ -416,9 +468,10 @@ function SettlementPage() {
           ) : (
             <ul className="divide-y divide-border">
               {history.data!.map((h) => {
-                const rows = Array.isArray(h.totals)
+                const savedRows = Array.isArray(h.totals)
                   ? (h.totals as Array<{ name: string; total: number; count: number }>)
                   : [];
+                const rows = historyExpenses.data ? (historyTotals.get(h.id) ?? []) : savedRows;
                 const grand = rows.reduce((s, r) => s + Number(r.total || 0), 0);
                 const displayStart = settlementHistoryCycleStart(
                   h.completed_at ?? h.period_end ?? h.created_at,
