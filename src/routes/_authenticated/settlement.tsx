@@ -415,19 +415,47 @@ function SettlementPage() {
             <div className="p-6 text-sm text-muted-foreground text-center">No settlements yet.</div>
           ) : (
             <ul className="divide-y divide-border">
-              {history.data!.map((h) => (
-                <li key={h.id} className="p-4 text-sm flex items-center justify-between gap-3">
-                  <div>
-                    <div className="font-medium capitalize">{h.status}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {formatDate(h.period_start)} → {formatDate(h.period_end)}
+              {history.data!.map((h) => {
+                const rows = Array.isArray(h.totals)
+                  ? (h.totals as Array<{ name: string; total: number; count: number }>)
+                  : [];
+                const grand = rows.reduce((s, r) => s + Number(r.total || 0), 0);
+                return (
+                  <li key={h.id} className="p-4 text-sm space-y-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="font-medium capitalize">{h.status}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {formatDate(h.period_start)} → {formatDate(h.period_end)}
+                        </div>
+                      </div>
+                      <div className="text-xs text-muted-foreground text-right">
+                        {h.completed_at ? `Completed ${formatDate(h.completed_at)}` : formatDate(h.created_at)}
+                        {grand > 0 && (
+                          <div className="text-sm font-medium text-foreground tabular-nums">
+                            {formatMoney(grand, currency)}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {h.completed_at ? `Completed ${formatDate(h.completed_at)}` : formatDate(h.created_at)}
-                  </div>
-                </li>
-              ))}
+                    {rows.length > 0 && (
+                      <div className="rounded-md bg-muted/40 divide-y divide-border">
+                        {rows.map((r, i) => (
+                          <div key={i} className="flex items-center justify-between px-3 py-1.5 text-xs">
+                            <span>{r.name}</span>
+                            <span className="tabular-nums text-muted-foreground">
+                              {r.count} {r.count === 1 ? "entry" : "entries"}
+                            </span>
+                            <span className="tabular-nums font-medium">
+                              {formatMoney(Number(r.total), currency)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
