@@ -8,11 +8,32 @@ export function currentCycleStart(today: Date = new Date()): Date {
   return new Date(d.getFullYear(), d.getMonth(), 16);
 }
 
-export function settlementHistoryCycleStart(settledAt: string | Date): Date {
+/**
+ * The cycle a settlement covers, derived from when it was settled.
+ * Settled on the 16th (or later in that half) → covers 1st–15th of that month.
+ * Settled on the 1st–15th → covers 16th–end of the PREVIOUS month.
+ */
+export function settlementHistoryCycleRange(settledAt: string | Date): {
+  start: Date;
+  end: Date;
+} {
   const date = settledAt instanceof Date ? settledAt : new Date(settledAt);
   const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  if (d.getDate() <= 16) return new Date(d.getFullYear(), d.getMonth(), 1);
-  return new Date(d.getFullYear(), d.getMonth(), 16);
+  if (d.getDate() >= 16) {
+    return {
+      start: new Date(d.getFullYear(), d.getMonth(), 1),
+      end: new Date(d.getFullYear(), d.getMonth(), 15),
+    };
+  }
+  const prev = new Date(d.getFullYear(), d.getMonth() - 1, 16);
+  return {
+    start: prev,
+    end: new Date(d.getFullYear(), d.getMonth(), 0), // last day of previous month
+  };
+}
+
+export function settlementHistoryCycleStart(settledAt: string | Date): Date {
+  return settlementHistoryCycleRange(settledAt).start;
 }
 
 /** Date the current cycle should be settled on (16th or 1st of next month). */
