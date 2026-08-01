@@ -7,7 +7,10 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { formatMoney, formatDate } from "@/lib/format";
 import { Handshake, CheckCircle2, Clock, AlertCircle, Loader2, X } from "lucide-react";
-import { currentCycleStart, settlementHistoryCycleStart } from "@/lib/settlement-cycle";
+import { currentCycleStart, settlementHistoryCycleRange } from "@/lib/settlement-cycle";
+
+const toDay = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/settlement")({
