@@ -7,7 +7,10 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { formatMoney, formatDate } from "@/lib/format";
 import { Handshake, CheckCircle2, Clock, AlertCircle, Loader2, X } from "lucide-react";
-import { currentCycleStart, settlementHistoryCycleStart } from "@/lib/settlement-cycle";
+import { currentCycleStart, settlementHistoryCycleRange } from "@/lib/settlement-cycle";
+
+const toDay = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/settlement")({
@@ -243,9 +246,13 @@ function SettlementPage() {
 
   const historyWindows = useMemo(() => {
     return (history.data ?? []).map((h) => {
-      const end = h.period_end ?? h.completed_at ?? h.created_at;
-      const start = settlementHistoryCycleStart(h.completed_at ?? end).toISOString().slice(0, 10);
-      return { id: h.id, start, end: new Date(end).toISOString().slice(0, 10) };
+      const settledAt = h.completed_at ?? h.period_end ?? h.created_at;
+      const { start, end } = settlementHistoryCycleRange(settledAt);
+      return {
+        id: h.id,
+        start: toDay(start),
+        end: toDay(end),
+      };
     });
   }, [history.data]);
 
@@ -473,7 +480,7 @@ function SettlementPage() {
                   : [];
                 const rows = historyExpenses.data ? (historyTotals.get(h.id) ?? []) : savedRows;
                 const grand = rows.reduce((s, r) => s + Number(r.total || 0), 0);
-                const displayStart = settlementHistoryCycleStart(
+                const cycle = settlementHistoryCycleRange(
                   h.completed_at ?? h.period_end ?? h.created_at,
                 );
                 return (
@@ -482,7 +489,7 @@ function SettlementPage() {
                       <div>
                         <div className="font-medium capitalize">{h.status}</div>
                         <div className="text-xs text-muted-foreground">
-                          {formatDate(displayStart.toISOString())} → {formatDate(h.period_end)}
+                          {formatDate(cycle.start.toISOString())} → {formatDate(cycle.end.toISOString())}
                         </div>
                       </div>
                       <div className="text-xs text-muted-foreground text-right">
