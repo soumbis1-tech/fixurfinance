@@ -480,7 +480,7 @@ function SettlementPage() {
                   : [];
                 const rows = historyExpenses.data ? (historyTotals.get(h.id) ?? []) : savedRows;
                 const grand = rows.reduce((s, r) => s + Number(r.total || 0), 0);
-                const displayStart = settlementHistoryCycleStart(
+                const cycle = settlementHistoryCycleRange(
                   h.completed_at ?? h.period_end ?? h.created_at,
                 );
                 return (
@@ -489,7 +489,7 @@ function SettlementPage() {
                       <div>
                         <div className="font-medium capitalize">{h.status}</div>
                         <div className="text-xs text-muted-foreground">
-                          {formatDate(displayStart.toISOString())} → {formatDate(h.period_end)}
+                          {formatDate(cycle.start.toISOString())} → {formatDate(cycle.end.toISOString())}
                         </div>
                       </div>
                       <div className="text-xs text-muted-foreground text-right">
