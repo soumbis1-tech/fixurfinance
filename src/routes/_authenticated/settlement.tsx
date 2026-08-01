@@ -243,9 +243,13 @@ function SettlementPage() {
 
   const historyWindows = useMemo(() => {
     return (history.data ?? []).map((h) => {
-      const end = h.period_end ?? h.completed_at ?? h.created_at;
-      const start = settlementHistoryCycleStart(h.completed_at ?? end).toISOString().slice(0, 10);
-      return { id: h.id, start, end: new Date(end).toISOString().slice(0, 10) };
+      const settledAt = h.completed_at ?? h.period_end ?? h.created_at;
+      const { start, end } = settlementHistoryCycleRange(settledAt);
+      return {
+        id: h.id,
+        start: toDay(start),
+        end: toDay(end),
+      };
     });
   }, [history.data]);
 
