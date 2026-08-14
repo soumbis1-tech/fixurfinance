@@ -55,9 +55,22 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in — Family Expense Tracker" },
-      { name: "description", content: "Sign in to your Family Expense Tracker." },
+      {
+        name: "description",
+        content:
+          "Sign in or create a Family Expense Tracker account to log household expenses, import bank statements, track budgets and settle shared costs with your family.",
+      },
+      { property: "og:title", content: "Sign in — Family Expense Tracker" },
+      {
+        property: "og:description",
+        content:
+          "Access your family workspace to record expenses, review budgets and settle shared household costs.",
+      },
+      { property: "og:url", content: "https://fixurfinance.lovable.app/auth" },
     ],
+    links: [{ rel: "canonical", href: "https://fixurfinance.lovable.app/auth" }],
   }),
+
   component: AuthPage,
 });
 

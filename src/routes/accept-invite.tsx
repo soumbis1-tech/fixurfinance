@@ -12,7 +12,25 @@ const PENDING_KEY = "fet-pending-invite-token";
 export const Route = createFileRoute("/accept-invite")({
   ssr: false,
   validateSearch: (s) => z.object({ token: z.string().min(1).optional() }).parse(s),
-  head: () => ({ meta: [{ title: "Accept invitation" }] }),
+  head: () => ({
+    meta: [
+      { title: "Accept invitation — Family Expense Tracker" },
+      {
+        name: "description",
+        content:
+          "Accept your invitation to join a Family Expense Tracker workspace and start sharing household expenses, budgets and settlements.",
+      },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Accept invitation — Family Expense Tracker" },
+      {
+        property: "og:description",
+        content: "Join a family workspace to share household expenses and settlements.",
+      },
+      { property: "og:url", content: "https://fixurfinance.lovable.app/accept-invite" },
+    ],
+    links: [{ rel: "canonical", href: "https://fixurfinance.lovable.app/accept-invite" }],
+  }),
+
   component: AcceptInvitePage,
 });
 

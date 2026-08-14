@@ -8,7 +8,25 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/reset-password")({
   ssr: false,
-  head: () => ({ meta: [{ title: "Reset password" }] }),
+  head: () => ({
+    meta: [
+      { title: "Reset password — Family Expense Tracker" },
+      {
+        name: "description",
+        content:
+          "Choose a new password for your Family Expense Tracker account and get back to tracking your household expenses.",
+      },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Reset password — Family Expense Tracker" },
+      {
+        property: "og:description",
+        content: "Set a new password for your Family Expense Tracker account.",
+      },
+      { property: "og:url", content: "https://fixurfinance.lovable.app/reset-password" },
+    ],
+    links: [{ rel: "canonical", href: "https://fixurfinance.lovable.app/reset-password" }],
+  }),
+
   component: ResetPasswordPage,
 });
 

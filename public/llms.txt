@@ -1,0 +1,13 @@
+# Family Expense Tracker
+
+> A household finance app for families to log shared expenses, import bank statements, track recurring bills and trips, set budgets, and settle up twice a month.
+
+Family Expense Tracker is a private, account-based web and Android app. Members join a family workspace, record expenses with categories, payment accounts, receipts, and reimbursement status, and review spending through charts, budgets, and weekly email reports. Most pages require signing in.
+
+## Pages
+
+- [Sign in](/auth): Create an account or sign in to your family workspace.
+
+## Optional
+
+- [Home](/): Redirects signed-in members to their dashboard.
