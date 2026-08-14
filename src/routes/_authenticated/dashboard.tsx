@@ -478,7 +478,7 @@ function Dashboard() {
 
       <div className="grid lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 rounded-xl border border-border bg-card p-4">
-          <h3 className="text-sm font-semibold mb-3">Daily spending — {format(today, "MMMM yyyy")}</h3>
+          <h2 className="text-sm font-semibold mb-3">Daily spending — {format(today, "MMMM yyyy")}</h3>
           <div className="h-64">
             {(daily.data?.length ?? 0) === 0 ? (
               <EmptyChart text="No expenses yet this month" />
@@ -507,7 +507,7 @@ function Dashboard() {
         </div>
 
         <div className="rounded-xl border border-border bg-card p-4">
-          <h3 className="text-sm font-semibold mb-3">By category</h3>
+          <h2 className="text-sm font-semibold mb-3">By category</h3>
           <div className="h-64">
             {(categories.data?.length ?? 0) === 0 ? (
               <EmptyChart text="Add expenses to see categories" />
@@ -547,7 +547,7 @@ function Dashboard() {
 
       <div className="grid lg:grid-cols-2 gap-4">
         <div className="rounded-xl border border-border bg-card p-4">
-          <h3 className="text-sm font-semibold mb-3">Top members this month</h3>
+          <h2 className="text-sm font-semibold mb-3">Top members this month</h3>
           {(members.data?.filter((m: { total: number }) => Number(m.total) > 0).length ?? 0) === 0 ? (
             <p className="text-sm text-muted-foreground">No spending recorded yet.</p>
           ) : (
@@ -571,7 +571,7 @@ function Dashboard() {
         </div>
 
         <div className="rounded-xl border border-border bg-card p-4">
-          <h3 className="text-sm font-semibold mb-3">Recent transactions</h3>
+          <h2 className="text-sm font-semibold mb-3">Recent transactions</h3>
           {(recent.data?.length ?? 0) === 0 ? (
             <p className="text-sm text-muted-foreground">
               Add an expense or import a file to get started.
@@ -599,7 +599,7 @@ function Dashboard() {
 
       <div className="rounded-xl border border-border bg-card p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold">Personal expenses by member — {format(today, "MMMM yyyy")}</h3>
+          <h2 className="text-sm font-semibold">Personal expenses by member — {format(today, "MMMM yyyy")}</h3>
           <span className="text-xs text-muted-foreground">
             Total {formatMoney((personalByMember.data ?? []).reduce((s, m) => s + m.total, 0), currency)}
           </span>
