@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useId, useState } from "react";
 import * as XLSX from "xlsx";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -317,10 +317,12 @@ function BankStatementsPage() {
                     <td className="px-3 py-1.5 text-right tabular-nums">{formatMoney(r.amount, currency)}</td>
                     <td className="px-3 py-1.5">
                       <select
+                        aria-label={`Category for ${r.description || `row ${i + 1}`}`}
                         value={r.category_id ?? ""}
                         onChange={(e) => setStaged((s) => s.map((x, j) => j === i ? { ...x, category_id: e.target.value || null } : x))}
                         className="h-8 rounded border border-input bg-transparent px-2 text-sm"
                       >
+
                         <option value="">—</option>
                         {(cats.data ?? []).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                       </select>
@@ -372,13 +374,15 @@ function BankStatementsPage() {
 }
 
 function MapSelect({ label, value, headers, onChange }: { label: string; value: string; headers: string[]; onChange: (v: string) => void }) {
+  const id = useId();
   return (
     <div>
-      <Label className="text-xs">{label}</Label>
-      <select value={value} onChange={(e) => onChange(e.target.value)} className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm">
+      <Label htmlFor={id} className="text-xs">{label}</Label>
+      <select id={id} value={value} onChange={(e) => onChange(e.target.value)} className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm">
         <option value="">— not mapped —</option>
         {headers.map((h) => <option key={h} value={h}>{h}</option>)}
       </select>
     </div>
   );
 }
+

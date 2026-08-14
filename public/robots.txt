@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /accept-invite
+Disallow: /reset-password
+
+Sitemap: https://fixurfinance.lovable.app/sitemap.xml
