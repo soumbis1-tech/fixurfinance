@@ -28,9 +28,22 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
       { title: "Dashboard — Family Expense Tracker" },
-      { name: "description", content: "Spending overview for your family." },
+      {
+        name: "description",
+        content:
+          "See this month's household spending at a glance: totals by category and member, recurring bills due, reimbursements pending and your latest settlement.",
+      },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Dashboard — Family Expense Tracker" },
+      {
+        property: "og:description",
+        content: "Monthly spending overview for your family workspace.",
+      },
+      { property: "og:url", content: "https://fixurfinance.lovable.app/dashboard" },
     ],
+    links: [{ rel: "canonical", href: "https://fixurfinance.lovable.app/dashboard" }],
   }),
+
   component: Dashboard,
 });
 

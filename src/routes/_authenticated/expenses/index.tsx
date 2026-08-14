@@ -51,7 +51,25 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/expenses/")({
-  head: () => ({ meta: [{ title: "Expenses" }] }),
+  head: () => ({
+    meta: [
+      { title: "Expenses — Family Expense Tracker" },
+      {
+        name: "description",
+        content:
+          "Browse, filter and edit every household expense: categories, payment accounts, receipts, trips and reimbursement status in one searchable table.",
+      },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Expenses — Family Expense Tracker" },
+      {
+        property: "og:description",
+        content: "Every household expense in one searchable, filterable table.",
+      },
+      { property: "og:url", content: "https://fixurfinance.lovable.app/expenses" },
+    ],
+    links: [{ rel: "canonical", href: "https://fixurfinance.lovable.app/expenses" }],
+  }),
+
   component: ExpensesPage,
 });
 
