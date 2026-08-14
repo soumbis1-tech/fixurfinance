@@ -554,6 +554,7 @@ function ExpensesPage() {
                           size="icon"
                           variant="ghost"
                           title="Mark reimbursed"
+                          aria-label={`Mark ${r.description || "expense"} as reimbursed`}
                           onClick={() => markReimbursed.mutate(r.id)}
                         >
                           <Check className="h-4 w-4" />
@@ -563,6 +564,7 @@ function ExpensesPage() {
                         size="icon"
                         variant="ghost"
                         title="Duplicate"
+                        aria-label={`Duplicate ${r.description || "expense"}`}
                         onClick={() => duplicate.mutate(r)}
                       >
                         <Copy className="h-4 w-4" />
@@ -573,6 +575,7 @@ function ExpensesPage() {
                           params={{ id: r.id }}
                           className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-accent"
                           title="Edit"
+                          aria-label={`Edit ${r.description || "expense"}`}
                         >
                           <Pencil className="h-4 w-4" />
                         </Link>
@@ -581,6 +584,7 @@ function ExpensesPage() {
                           size="icon"
                           variant="ghost"
                           title="Only the person who added this can edit"
+                          aria-label={`Edit ${r.description || "expense"} (only the person who added this can edit)`}
                           onClick={unauthorized}
                         >
                           <Pencil className="h-4 w-4 opacity-50" />
@@ -590,11 +594,13 @@ function ExpensesPage() {
                         size="icon"
                         variant="ghost"
                         title={canModify(r) ? "Delete" : "Only the person who added this can delete"}
+                        aria-label={`Delete ${r.description || "expense"}`}
                         onClick={() => (canModify(r) ? setDeleteId(r.id) : unauthorized())}
                       >
                         <Trash2 className={`h-4 w-4 ${canModify(r) ? "text-destructive" : "opacity-50"}`} />
                       </Button>
                     </div>
+
                   </td>
                 </tr>
               ))}
